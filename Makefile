@@ -7,7 +7,7 @@ OBJDIR = ./obj/
 SRCDIR = ./srcs/
 INCDIR = ./include/
 
-SRC = ircserv.cpp Server.cpp
+SRC = Server.cpp Client.cpp PassCommand.cpp NickCommand.cpp main.cpp
 OBJS = $(SRC:%.cpp=$(OBJDIR)%.o)
 
 all: $(NAME)
