@@ -4,20 +4,40 @@ PassCommand::PassCommand(Server* server) : Command(server) {}
 
 void	PassCommand::execute(Client* client, const std::vector<std::string>& args) {
 	if (args.empty()) {
-		std::cout	<< "Error: No password provided."
-					<< std::endl;;
+		std::string errorMsg = ":server 461 PASS :Not enough parameters\r\n";
+		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
 		_server->disconnectClient(client);
 		return ;
 	}
 
 	if (args[0] == _server->getPassword()) {
 		client->setAuthenticated(true);
-		std::cout	<< "Client authenticated successfully."
-					<< std::endl;;
-	}
-	else {
-		std::cout	<< "Client provided incorrect password."
-					<< std::endl;
+		std::string successMsg = ":server 001 PASS :Authentication successful\r\n";
+		send(client->getFd(), successMsg.c_str(), successMsg.size(), 0);
+	} else {
+		std::string errorMsg = ":server 464 :Password incorrect\r\n";
+		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
 		_server->disconnectClient(client);
 	}
 }
+
+// НЕТ ИСПОЛЬЗОВАНИЯ send()
+// void	PassCommand::execute(Client* client, const std::vector<std::string>& args) {
+// 	if (args.empty()) {
+// 		std::cout	<< "Error: No password provided."
+// 					<< std::endl;;
+// 		_server->disconnectClient(client);
+// 		return ;
+// 	}
+
+// 	if (args[0] == _server->getPassword()) {
+// 		client->setAuthenticated(true);
+// 		std::cout	<< "Client authenticated successfully."
+// 					<< std::endl;;
+// 	}
+// 	else {
+// 		std::cout	<< "Client provided incorrect password."
+// 					<< std::endl;
+// 		_server->disconnectClient(client);
+// 	}
+// }

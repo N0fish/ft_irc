@@ -3,7 +3,8 @@
 Client::Client(int fd) : fd(fd), authenticated(false) {}
 
 Client::~Client() {
-	close(fd);
+	if (fd >= 0)
+		close(fd);
 }
 
 int	Client::getFd() const {

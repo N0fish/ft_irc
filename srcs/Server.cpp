@@ -170,9 +170,12 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 		}
 		commands[cmd]->execute(client, args);
 	} else {
-		std::cerr	<< "Unknown command: "
-					<< cmd
-					<< std::endl;
+		std::string errorMsg = ":server 421 " + cmd + " :Unknown command\r\n";
+		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+		// НЕТ ИСПОЛЬЗОВАНИЯ send()
+		// std::cerr	<< "Unknown command: "
+		// 			<< cmd
+		// 			<< std::endl;
 	}
 }
 
