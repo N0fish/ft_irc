@@ -58,3 +58,21 @@ bool	Client::isUsernameSet() const {
 void	Client::setUsernameSet(bool set) {
 	usernameSet = set;
 }
+
+void Client::joinChannel(const std::string& channel) {
+	if (std::find(channels.begin(), channels.end(), channel) == channels.end()) {
+		channels.push_back(channel);
+	}
+}
+
+void Client::leaveChannel(const std::string& channel) {
+	channels.erase(std::remove(channels.begin(), channels.end(), channel), channels.end());
+}
+
+bool Client::isInChannel(const std::string& channel) {
+	return std::find(channels.begin(), channels.end(), channel) != channels.end();
+}
+
+const std::vector<std::string>& Client::getChannels() const{
+	return channels;
+}

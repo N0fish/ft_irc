@@ -27,3 +27,11 @@ void	Channel::broadcast(const std::string& message, Client* sender) {
 		}
 	}
 }
+
+/* const std::string& Channel::getPassword() const { 
+	return password; 
+} */
+
+const std::set<Client*>& Channel::getClients() const {
+    return clients;
+}

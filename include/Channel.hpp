@@ -7,6 +7,7 @@ class Channel {
 	private:
 		std::string			name;		// Название канала
 		std::set<Client*>	clients;	// Список клиентов в канале
+//		std::string 		password; 
 
 	public:
 		Channel(const std::string& name);
@@ -17,6 +18,8 @@ class Channel {
 		void				removeClient(Client* client);
 		bool				isEmpty() const;
 		void				broadcast(const std::string& message, Client* sender);
+//		const std::string&  getPassword() const;
+		const std::set<Client*>& getClients() const;
 };
 
 #endif

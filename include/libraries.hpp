@@ -14,5 +14,6 @@
 # include <cerrno>
 # include <sstream>
 # include <set>
+# include <algorithm>
 
 #endif

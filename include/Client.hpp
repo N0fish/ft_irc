@@ -26,6 +26,7 @@ class Client {
 		std::string	username;		// Имя пользователя клиента
 		bool		nicknameSet;	// Флаг установки никнейма
 		bool		usernameSet;	// Флаг установки имени пользователя
+		std::vector<std::string> channels; // Каналы, в которых состоит клиент
 
 	public:
 		Client(int fd);
@@ -48,6 +49,13 @@ class Client {
 
 		bool		isUsernameSet() const;
 		void		setUsernameSet(bool set);
+
+		void 		joinChannel(const std::string& channel); // Добавление клиента в канал
+
+		void 		leaveChannel(const std::string& channel); // Удаление клиента из канала
+		bool 		isInChannel(const std::string& channel); // Проверка, состоит ли клиент в канале
+
+		const std::vector<std::string>& getChannels() const; // Получение списка каналов
 };
 
 #endif

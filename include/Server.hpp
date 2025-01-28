@@ -30,6 +30,14 @@ class Server {
 		void	removeClientFromChannels(Client* client);
 		void	disconnectClient(Client* client);
 
+        void    handleJOIN(Client* client, const std::vector<std::string>& args) ;
+        void    handlePART(int clientFd, const std::string& channelName);
+        void    handlePRIVMSG(Client* client, const std::vector<std::string>& args);
+        Client* findClientByNickname(const std::string& nickname) const;
+        void    handlePING(Client* client, const std::vector<std::string>& args);
+
+        Client* findClientByFd(int fd);
+
 		friend class PassCommand;
 		friend class NickCommand;
 
