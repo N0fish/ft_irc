@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "PassCommand.hpp"
 #include "NickCommand.hpp"
+#include "UserCommand.hpp"
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
@@ -77,20 +78,17 @@ void Server::handleClient(int clientFd) {
     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
 
     if (bytesRead <= 0) {
-        if (bytesRead < 0 && errno != EWOULDBLOCK) { // Используем errno и EWOULDBLOCK
+        if (bytesRead < 0 && errno != EWOULDBLOCK) {
             std::cerr << "Recv error for client " << clientFd << std::endl;
         }
-        close(clientFd);
-
-        for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it) {
-            if (it->fd == clientFd) {
-                clients.erase(it);
-                break ;
-            }
-        }
-
-        return;
-    }
+		
+		// Найдём клиента и отключим его
+		Client* client = findClientByFd(clientFd);
+		if (client) {
+			disconnectClient(client); // Закрываем соединение
+		}
+		return ; // Завершаем обработку клиента
+	}
 
     std::string message(buffer);
     std::cout << "Received from client " << clientFd << ": " << message << std::endl;
@@ -120,6 +118,40 @@ void Server::handleClient(int clientFd) {
 void	Server::initializeCommands() {
 	commands["PASS"] = new PassCommand(this);
 	commands["NICK"] = new NickCommand(this);
+	commands["USER"] = new UserCommand(this);
+}
+
+void	Server::disconnectClient(Client* client) {
+	int	fd = client->getFd();
+
+	for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it) {
+		if (it->fd == fd) {
+			clients.erase(it);
+			break ;
+		}
+	}
+
+	for (std::vector<Client*>::iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
+		if (*it == client) {
+			delete client;
+			clientObjects.erase(it);
+			break ;
+		}
+	}
+
+	close(fd);
+	std::cout	<< "Client "
+				<< fd << " disconnected."
+				<< std::endl;
+}
+
+bool	Server::isNicknameTaken(const std::string& nickname) const {
+	for (size_t i = 0; i < clientObjects.size(); ++i) {
+		if (clientObjects[i]->getNickname() == nickname) {
+			return (true);
+		}
+	}
+	return (false);
 }
 
 void	Server::handleCommand(Client* client, const std::string& command) {

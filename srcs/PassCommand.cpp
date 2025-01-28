@@ -6,6 +6,7 @@ void	PassCommand::execute(Client* client, const std::vector<std::string>& args) 
 	if (args.empty()) {
 		std::cout	<< "Error: No password provided."
 					<< std::endl;;
+		_server->disconnectClient(client);
 		return ;
 	}
 
@@ -14,7 +15,9 @@ void	PassCommand::execute(Client* client, const std::vector<std::string>& args) 
 		std::cout	<< "Client authenticated successfully."
 					<< std::endl;;
 	}
-	else
+	else {
 		std::cout	<< "Client provided incorrect password."
 					<< std::endl;
+		_server->disconnectClient(client);
+	}
 }

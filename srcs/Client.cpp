@@ -33,3 +33,27 @@ std::string	Client::getNickname() const {
 void	Client::setNickname(const std::string& nick) { 
 	nickname = nick; 
 }
+
+std::string	Client::getUsername() const {
+	return (username);
+}
+
+void	Client::setUsername(const std::string& user) {
+	username = user;
+}
+
+bool	Client::isNicknameSet() const {
+	return (nicknameSet);
+}
+
+void	Client::setNicknameSet(bool set) {
+	nicknameSet = set;
+}
+
+bool	Client::isUsernameSet() const {
+	return (usernameSet);
+}
+
+void	Client::setUsernameSet(bool set) {
+	usernameSet = set;
+}

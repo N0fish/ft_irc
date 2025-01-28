@@ -1,12 +1,12 @@
-#ifndef NICK_COMMAND_HPP
-# define NICK_COMMAND_HPP
+#ifndef USER_COMMAND_HPP
+# define USER_COMMAND_HPP
 
 # include "Command.hpp"
 # include "Client.hpp"
 
-class NickCommand : public Command {
+class UserCommand : public Command {
 	public:
-		NickCommand(Server* server);
+		UserCommand(Server* server);
 		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
 

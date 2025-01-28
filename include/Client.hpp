@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-// чтобы на будущее добавить время когда начала и хедеры везде
+// чтобы на будущее добавить время, когда начала, и хедеры не забыть поставить везде
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
@@ -19,10 +19,13 @@
 
 class Client {
 	private:
-		int			fd;
-		bool		authenticated;
-		std::string	partialMessage;
-		std::string	nickname;
+		int			fd;				// Дескриптор клиента
+		bool		authenticated;	// Флаг аутентификации
+		std::string	partialMessage;	// Буфер для неполных сообщений
+		std::string	nickname;		// Никнейм клиента
+		std::string	username;		// Имя пользователя клиента
+		bool		nicknameSet;	// Флаг установки никнейма
+		bool		usernameSet;	// Флаг установки имени пользователя
 
 	public:
 		Client(int fd);
@@ -36,6 +39,15 @@ class Client {
 
 		std::string	getNickname() const;
 		void		setNickname(const std::string& nick);
+
+		std::string	getUsername() const;
+		void		setUsername(const std::string& user);
+
+		bool		isNicknameSet() const;
+		void		setNicknameSet(bool set);
+
+		bool		isUsernameSet() const;
+		void		setUsernameSet(bool set);
 };
 
 #endif

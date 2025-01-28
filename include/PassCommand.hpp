@@ -7,7 +7,7 @@
 class PassCommand : public Command {
 	public:
 		PassCommand(Server* server);
-		virtual void execute(Client* client, const std::vector<std::string>& args);
+		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
 
 #endif
