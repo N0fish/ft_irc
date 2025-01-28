@@ -13,5 +13,6 @@
 # include <fcntl.h>
 # include <cerrno>
 # include <sstream>
+# include <set>
 
 #endif

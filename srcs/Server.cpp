@@ -2,6 +2,7 @@
 #include "PassCommand.hpp"
 #include "NickCommand.hpp"
 #include "UserCommand.hpp"
+#include "Channel.hpp"
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
@@ -121,7 +122,21 @@ void	Server::initializeCommands() {
 	commands["USER"] = new UserCommand(this);
 }
 
+void	Server::removeClientFromChannels(Client* client) {
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
+		it->second->removeClient(client);
+		if (it->second->isEmpty()) {
+			delete it->second;
+			it = channels.erase(it);
+		}
+		else
+			++it;
+	}
+}
+
 void	Server::disconnectClient(Client* client) {
+	removeClientFromChannels(client);
+
 	int	fd = client->getFd();
 
 	for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it) {

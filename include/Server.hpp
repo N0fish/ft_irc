@@ -7,6 +7,7 @@ class Client;
 class Command;
 class NickCommand;
 class PassCommand;
+class Channel;
 
 class Server {
 	private:
@@ -17,6 +18,7 @@ class Server {
 		std::vector<struct pollfd>		clients;
 		std::vector<Client*>			clientObjects;
 		std::map<std::string, Command*>	commands;
+		std::map<std::string, Channel*>	channels;
 
 		void	initSocket();
 		void	acceptConnection();
@@ -25,6 +27,7 @@ class Server {
 		void	handleCommand(Client* client, const std::string& command);
 		void	initializeCommands();
 		bool	isNicknameTaken(const std::string& nickname) const;
+		void	removeClientFromChannels(Client* client);
 		void	disconnectClient(Client* client);
 
 		friend class PassCommand;
