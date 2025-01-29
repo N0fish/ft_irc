@@ -54,10 +54,15 @@ void Server::initSocket() {
     std::cout << "Server started on port " << port << std::endl;
 }
 
+// сервер создаёт клиента (Client) при подключении
+
+// - сервр принимает новое соединение
+// - добавляет клиента в poll() для обработки событий
+// - создает новый объект Client и сохраняет его
 void Server::acceptConnection() {
     int clientFd = accept(serverSocket, NULL, NULL);
     if (clientFd < 0) {
-        if (errno != EWOULDBLOCK) { // Используем errno и EWOULDBLOCK
+        if (errno != EWOULDBLOCK) {
             std::cerr << "Accept error" << std::endl;
         }
         return;
@@ -73,10 +78,14 @@ void Server::acceptConnection() {
     std::cout << "New client connected: " << clientFd << std::endl;
 }
 
+// сервер получает команды от клиента
 void Server::handleClient(int clientFd) {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+	// recv() получает данные от клиента.
+	// Сообщение разбивается по \n, чтобы обработать каждую команду.
+	// handleCommand(client, command); передаёт команду в обработчик.
 
     if (bytesRead <= 0) {
         if (bytesRead < 0 && errno != EWOULDBLOCK) {
@@ -108,7 +117,7 @@ void Server::handleClient(int clientFd) {
         if (command.empty())
 			continue ;
 
-        handleCommand(client, command);
+        handleCommand(client, command); // передаёт команду в обработчик.
     }
 
     if (client->getPartialMessage() == "\n") {
@@ -116,7 +125,17 @@ void Server::handleClient(int clientFd) {
     }
 }
 
+// Команды добавляются в std::map<std::string, Command*> 
+// commands в методе initializeCommands().
+
+	// initializeCommands добавлен в конструктор в начале
+	// Когда сервер создаётся, он наполняет commands.
+	// Когда клиент вводит NICK, PASS, USER, сервер вызывает соответствующий объект.
+
 void	Server::initializeCommands() {
+	// commands — мап, ключ - "PASS" (объект команды)
+	// клиент отправляет PASS, NICK или USER, 
+	// сервер находит соответствующий обработчик команды в этом мап
 	commands["PASS"] = new PassCommand(this);
 	commands["NICK"] = new NickCommand(this);
 	commands["USER"] = new UserCommand(this);
@@ -174,7 +193,12 @@ bool	Server::isNicknameTaken(const std::string& nickname) const {
 	return (false);
 }
 
+// сервер обрабатывает команды, которые вводит клиент
 void	Server::handleCommand(Client* client, const std::string& command) {
+	// Парсим команду: бюерём NICK
+	// Ищем в commands:
+	// Если NICK есть в commands, вызываем commands["NICK"]->execute(client, args);
+	// Если нет, сервер отвечает :server 421 <command> :Unknown command.
 	if (command.empty())
 		return ;
 
@@ -192,10 +216,6 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 	} else {
 		std::string errorMsg = ":server 421 " + cmd + " :Unknown command\r\n";
 		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-		// НЕТ ИСПОЛЬЗОВАНИЯ send()
-		// std::cerr	<< "Unknown command: "
-		// 			<< cmd
-		// 			<< std::endl;
 	}
 }
 
