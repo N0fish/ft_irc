@@ -2,7 +2,12 @@
 #include "PassCommand.hpp"
 #include "NickCommand.hpp"
 #include "UserCommand.hpp"
+#include "JoinCommand.hpp"
+#include "PartCommand.hpp"
+#include "PrivmsgCommand.hpp"
+#include "PingCommand.hpp"
 #include "Channel.hpp"
+#include "Client.hpp"
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
@@ -140,10 +145,10 @@ void	Server::initializeCommands() {
 	commands["NICK"] = new NickCommand(this);
 	commands["USER"] = new UserCommand(this);
 
-   /*commands["JOIN"] = new JoinCommand(this);
+    commands["JOIN"] = new JoinCommand(this);
     commands["PART"] = new PartCommand(this);
     commands["PRIVMSG"] = new PrivmsgCommand(this);
-    commands["PING"] = new PingCommand(this); */ 
+    commands["PING"] = new PingCommand(this);
 }
 
 void	Server::removeClientFromChannels(Client* client) {
@@ -151,7 +156,11 @@ void	Server::removeClientFromChannels(Client* client) {
 		it->second->removeClient(client);
 		if (it->second->isEmpty()) {
 			delete it->second;
-			it = channels.erase(it);
+			std::map<std::string, Channel*>::iterator next = it;
+            ++next;                 // Переходим к следующему итератору
+            delete it->second;      // Удаляем объект канала
+            channels.erase(it);     // Удаляем элемент из map
+            it = next;   
 		}
 		else
 			++it;
@@ -263,7 +272,7 @@ Client* Server::findClientByFd(int fd) {
             return clientObjects[i];
         }
     }
-    return nullptr; // Клиент не найден
+    return NULL; // Клиент не найден
 }
 
 void Server::handleJOIN(Client* client, const std::vector<std::string>& args) {
@@ -344,12 +353,15 @@ void Server::handlePRIVMSG(Client* client, const std::vector<std::string>& args)
 
         // Получаем канал и отправляем сообщение всем клиентам
         Channel* channel = channels[target];
-        for (Client* recipient : channel->getClients()) {
-            if (recipient != client) { // Не отправляем сообщение самому себе
+        std::set<Client*>::const_iterator it = channel->getClients().begin();
+        for (; it != channel->getClients().end(); ++it) {
+            Client* recipient = *it;
+            if (recipient != client) {
                 std::string msg = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
                 send(recipient->getFd(), msg.c_str(), msg.size(), 0);
             }
         }
+
     } else { // Личное сообщение
         // Ищем клиента по никнейму
         Client* recipient = findClientByNickname(target);
@@ -366,12 +378,16 @@ void Server::handlePRIVMSG(Client* client, const std::vector<std::string>& args)
 }
 
 Client* Server::findClientByNickname(const std::string& nickname) const {
-    for (Client* client : clientObjects) {
+    for (std::vector<Client*>::const_iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
+        Client* client = *it;
+        if (client->getNickname() == nickname) {
+         return client;
+        }
         if (client->getNickname() == nickname) {
             return client;
         }
     }
-    return nullptr; // Клиент с таким никнеймом не найден
+    return NULL; // Клиент с таким никнеймом не найден
 }
 
 void Server::handlePING(Client* client, const std::vector<std::string>& args) {

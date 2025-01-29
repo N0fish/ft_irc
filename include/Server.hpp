@@ -7,6 +7,10 @@ class Client;
 class Command;
 class NickCommand;
 class PassCommand;
+class JoinCommand;
+class PartCommand;
+class PrivmsgCommand;
+class PingCommand;
 class Channel;
 
 class Server {
@@ -36,10 +40,12 @@ class Server {
         Client* findClientByNickname(const std::string& nickname) const;
         void    handlePING(Client* client, const std::vector<std::string>& args);
 
-        Client* findClientByFd(int fd);
-
 		friend class PassCommand;
 		friend class NickCommand;
+		friend class JoinCommand;
+		friend class PartCommand;
+		friend class PrivmsgCommand;
+		friend class PingCommand;
 
 	public:
 		Server(int port, const std::string &password);
