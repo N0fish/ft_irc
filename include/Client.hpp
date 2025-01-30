@@ -17,10 +17,18 @@
 
 # include "Server.hpp"
 
+enum ClientState {
+    UNAUTHENTICATED, // Клиент только подключился	----- Никакие команды, кроме PASS
+    PASS_PROVIDED, // Клиент ввел PASS				----- NICK, USER
+    REGISTERED // Клиент ввел PASS, NICK и USER		----- Все команды
+}; 
+// этот инюм нужен, чтобы был порядок вначале комант PASS NICK USER, 
+//до этого другие команды вводить нельзя
+
 class Client {
 	private:
 		int			fd;				// Дескриптор клиента
-		bool		authenticated;	// Флаг аутентификации
+		ClientState	state;			// Новый статус клиента
 		std::string	partialMessage;	// Буфер для неполных сообщений
 		std::string	nickname;		// Никнейм клиента
 		std::string	username;		// Имя пользователя клиента
@@ -33,8 +41,11 @@ class Client {
 		~Client();
 
 		int			getFd() const;
-		bool		isAuthenticated() const;
-		void		setAuthenticated(bool auth);
+		void		reply(const std::string& message); // Использовать для отправки сообщений через send()!!!!!
+
+		ClientState	getState() const;
+		void		setState(ClientState newState);
+
 		std::string	getPartialMessage() const;
 		void		setPartialMessage(const std::string& message);
 
@@ -55,7 +66,7 @@ class Client {
 		void 		leaveChannel(const std::string& channel); // Удаление клиента из канала
 		bool 		isInChannel(const std::string& channel); // Проверка, состоит ли клиент в канале
 
-		const std::vector<std::string>& getChannels() const; // Получение списка каналов
+		const std::vector<std::string>&	getChannels() const; // Получение списка каналов
 };
 
 #endif

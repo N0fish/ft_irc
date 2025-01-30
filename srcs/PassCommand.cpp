@@ -2,21 +2,25 @@
 
 PassCommand::PassCommand(Server* server) : Command(server) {}
 
+// Это первое, что должен сделать клиент !!! Если нет PASS, другие команды не работают
+
 void	PassCommand::execute(Client* client, const std::vector<std::string>& args) {
 	if (args.empty()) {
-		std::string errorMsg = ":server 461 PASS :Not enough parameters\r\n";
-		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+		client->reply(":server 461 PASS :Not enough parameters");
 		_server->disconnectClient(client);
 		return ;
 	}
 
+	if (client->getState() != UNAUTHENTICATED) {
+		client->reply(":server 462 PASS :You may not reregister");
+		return ;
+	}
+
 	if (args[0] == _server->getPassword()) {
-		client->setAuthenticated(true);
-		std::string successMsg = ":server 001 PASS :Authentication successful\r\n";
-		send(client->getFd(), successMsg.c_str(), successMsg.size(), 0);
+		client->setState(PASS_PROVIDED);
+		client->reply(":server 001 PASS :Authentication successful");
 	} else {
-		std::string errorMsg = ":server 464 :Password incorrect\r\n";
-		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
+		client->reply(":server 464 :Password incorrect");
 		_server->disconnectClient(client);
 	}
 }

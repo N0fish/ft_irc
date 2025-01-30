@@ -215,6 +215,11 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 	std::string			cmd;
 	iss >> cmd;
 
+	if (client->getState() != REGISTERED && cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
+		client->reply(":server 451 " + cmd + " :You have not registered");
+		return ;
+	}
+
 	if (commands.find(cmd) != commands.end()) {
 		std::vector<std::string>	args;
 		std::string					arg;
@@ -222,10 +227,8 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 			args.push_back(arg);
 		}
 		commands[cmd]->execute(client, args);
-	} else {
-		std::string errorMsg = ":server 421 " + cmd + " :Unknown command\r\n";
-		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-	}
+	} else
+		client->reply(":server 421 " + cmd + " :Unknown command");
 }
 
 void Server::run() {
@@ -239,7 +242,7 @@ void Server::run() {
         int pollCount = poll(clients.data(), clients.size(), -1);
         if (pollCount < 0) {
             if (errno == EINTR)
-                continue ; // Сигнал, повторяем poll
+                continue ;
             throw std::runtime_error("Poll failed");
         }
 
@@ -251,13 +254,6 @@ void Server::run() {
                     handleClient(clients[i].fd);
                 }
             }
-        }
-
-        // Завершаем сервер, если остался только серверный сокет
-        if (clients.size() == 1) { // Только серверный сокет
-            std::cout	<< "No clients left. Shutting down server."
-                        << std::endl;
-            break ;
         }
     }
 }

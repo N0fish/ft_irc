@@ -1,6 +1,9 @@
 #include "Client.hpp"
 
-Client::Client(int fd) : fd(fd), authenticated(false) {}
+Client::Client(int fd) :	fd(fd),
+							state(UNAUTHENTICATED),
+							nicknameSet(false),
+							usernameSet(false) {}
 
 Client::~Client() {
 	if (fd >= 0)
@@ -11,12 +14,21 @@ int	Client::getFd() const {
 	return (fd);
 }
 
-bool	Client::isAuthenticated() const {
-	return (authenticated);
+void	Client::reply(const std::string& message) {
+	std::string formattedMessage = message;
+	if (formattedMessage.size() < 2 
+		|| formattedMessage.substr(formattedMessage.size() - 2) != "\r\n") {
+		formattedMessage += "\r\n";
+	}
+	send(fd, formattedMessage.c_str(), formattedMessage.size(), 0);
 }
 
-void	Client::setAuthenticated(bool auth) {
-	authenticated = auth;
+ClientState	Client::getState() const {
+	return (state);
+}
+
+void	Client::setState(ClientState newState) {
+	state = newState;
 }
 
 std::string	Client::getPartialMessage() const {
