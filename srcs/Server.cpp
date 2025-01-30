@@ -204,10 +204,6 @@ bool	Server::isNicknameTaken(const std::string& nickname) const {
 
 // сервер обрабатывает команды, которые вводит клиент
 void	Server::handleCommand(Client* client, const std::string& command) {
-	// Парсим команду: бюерём NICK
-	// Ищем в commands:
-	// Если NICK есть в commands, вызываем commands["NICK"]->execute(client, args);
-	// Если нет, сервер отвечает :server 421 <command> :Unknown command.
 	if (command.empty())
 		return ;
 
@@ -215,7 +211,8 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 	std::string			cmd;
 	iss >> cmd;
 
-	if (client->getState() != REGISTERED && cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
+	if (client->getState() != REGISTERED 
+		&& cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
 		client->reply(":server 451 " + cmd + " :You have not registered");
 		return ;
 	}
