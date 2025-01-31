@@ -1,13 +1,13 @@
-#ifndef JOIN_COMMAND_HPP
-# define JOIN_COMMAND_HPP
+#ifndef MODE_COMMAND_HPP
+# define MODE_COMMAND_HPP
 
 # include "Command.hpp"
 # include "Client.hpp"
 # include "Channel.hpp"
 
-class JoinCommand : public Command {
+class ModeCommand : public Command {
 	public:
-		JoinCommand(Server* server);
+		ModeCommand(Server* server);
 		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
 

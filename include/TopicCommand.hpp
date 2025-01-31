@@ -1,13 +1,13 @@
-#ifndef JOIN_COMMAND_HPP
-# define JOIN_COMMAND_HPP
+#ifndef TOPIC_COMMAND_HPP
+# define TOPIC_COMMAND_HPP
 
 # include "Command.hpp"
-# include "Client.hpp"
 # include "Channel.hpp"
+# include "Client.hpp"
 
-class JoinCommand : public Command {
+class TopicCommand : public Command {
 	public:
-		JoinCommand(Server* server);
+		TopicCommand(Server* server);
 		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
 

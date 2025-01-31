@@ -1,14 +1,14 @@
-#pragma once
+#ifndef PRIVMSG_COMMAND_HPP
+# define PRIVMSG_COMMAND_HPP
 
-#include "Command.hpp"
-#include "Client.hpp"
+# include "Command.hpp"
+# include "Client.hpp"
+# include "Channel.hpp"
 
-// Класс для обработки команды PRIVMSG
 class PrivmsgCommand : public Command {
-protected:
-    Server* server; // Указатель на сервер
-    
-public:
-    PrivmsgCommand(Server* server); // Конструктор
-    virtual void execute(Client* client, const std::vector<std::string>& args); // Выполнение команды
+	public:
+		PrivmsgCommand(Server* server);
+		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
+
+#endif

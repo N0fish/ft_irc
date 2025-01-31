@@ -7,7 +7,11 @@ OBJDIR = ./obj/
 SRCDIR = ./srcs/
 INCDIR = ./include/
 
-SRC = Server.cpp Client.cpp PassCommand.cpp NickCommand.cpp UserCommand.cpp Channel.cpp main.cpp JoinCommand.cpp PartCommand.cpp PrivmsgCommand.cpp PingCommand.cpp
+SRC = Server.cpp Client.cpp Channel.cpp \
+	PassCommand.cpp NickCommand.cpp UserCommand.cpp \
+	JoinCommand.cpp PartCommand.cpp PrivmsgCommand.cpp PingCommand.cpp \
+	KickCommand.cpp ModeCommand.cpp InviteCommand.cpp TopicCommand.cpp \
+	main.cpp 
 OBJS = $(SRC:%.cpp=$(OBJDIR)%.o)
 
 all: $(NAME)

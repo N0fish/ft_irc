@@ -27,14 +27,15 @@ enum ClientState {
 
 class Client {
 	private:
-		int			fd;				// Дескриптор клиента
-		ClientState	state;			// Новый статус клиента
-		std::string	partialMessage;	// Буфер для неполных сообщений
-		std::string	nickname;		// Никнейм клиента
-		std::string	username;		// Имя пользователя клиента
-		bool		nicknameSet;	// Флаг установки никнейма
-		bool		usernameSet;	// Флаг установки имени пользователя
-		std::vector<std::string> channels; // Каналы, в которых состоит клиент
+		int							fd;				// Дескриптор клиента
+		ClientState					state;			// Новый статус клиента
+		std::string					partialMessage;	// Буфер для неполных сообщений
+		std::string					nickname;		// Никнейм клиента
+		std::string					username;		// Имя пользователя клиента
+		bool						nicknameSet;	// Флаг установки никнейма
+		bool						usernameSet;	// Флаг установки имени пользователя
+		std::vector<std::string>	channels;		// Каналы, в которых состоит клиент
+		std::set<std::string>		invitedChannels;
 
 	public:
 		Client(int fd);
@@ -55,6 +56,8 @@ class Client {
 		std::string	getUsername() const;
 		void		setUsername(const std::string& user);
 
+		std::string	getPrefix() const; // нужен серверу, чтобы формировать сообщения,  не изменяет состояние клиента, а просто возвращает данные.
+
 		bool		isNicknameSet() const;
 		void		setNicknameSet(bool set);
 
@@ -65,6 +68,9 @@ class Client {
 
 		void 		leaveChannel(const std::string& channel); // Удаление клиента из канала
 		bool 		isInChannel(const std::string& channel); // Проверка, состоит ли клиент в канале
+
+		void		addInvite(const std::string& channel);
+		bool		isInvited(const std::string& channel) const;
 
 		const std::vector<std::string>&	getChannels() const; // Получение списка каналов
 };

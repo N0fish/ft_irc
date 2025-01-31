@@ -4,14 +4,20 @@
 # include "libraries.hpp"
 
 class Client;
+class Channel;
 class Command;
-class NickCommand;
+
 class PassCommand;
+class NickCommand;
+// class UserCommand;
 class JoinCommand;
 class PartCommand;
 class PrivmsgCommand;
 class PingCommand;
-class Channel;
+class KickCommand;
+class ModeCommand;
+class InviteCommand;
+class TopicCommand;
 
 class Server {
 	private:
@@ -27,25 +33,26 @@ class Server {
 		void	initSocket();
 		void	acceptConnection();
 		void	handleClient(int clientFd);
+		void	initializeCommands();
 		Client*	findClientByFd(int fd);
 		void	handleCommand(Client* client, const std::string& command);
-		void	initializeCommands();
 		bool	isNicknameTaken(const std::string& nickname) const;
 		void	removeClientFromChannels(Client* client);
 		void	disconnectClient(Client* client);
-
-        void    handleJOIN(Client* client, const std::vector<std::string>& args) ;
-        void    handlePART(int clientFd, const std::string& channelName);
-        void    handlePRIVMSG(Client* client, const std::vector<std::string>& args);
-        Client* findClientByNickname(const std::string& nickname) const;
-        void    handlePING(Client* client, const std::vector<std::string>& args);
+		void	deleteChannel(const std::string& channelName);
 
 		friend class PassCommand;
 		friend class NickCommand;
 		friend class JoinCommand;
+
 		friend class PartCommand;
 		friend class PrivmsgCommand;
 		friend class PingCommand;
+
+		friend class KickCommand;
+		friend class InviteCommand;
+		friend class TopicCommand;
+		friend class ModeCommand;
 
 	public:
 		Server(int port, const std::string &password);
@@ -54,6 +61,10 @@ class Server {
 		void		run();
 
 		std::string	getPassword() const;
+
+		Client*		findClientByNickname(const std::string& nickname) const;
+		Channel*	getChannel(const std::string& name);
+		Channel*	createChannel(const std::string& name, const std::string& pass, Client* creator);
 };
 
 #endif

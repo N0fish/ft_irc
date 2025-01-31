@@ -3,7 +3,6 @@
 PassCommand::PassCommand(Server* server) : Command(server) {}
 
 // Это первое, что должен сделать клиент !!! Если нет PASS, другие команды не работают
-
 void	PassCommand::execute(Client* client, const std::vector<std::string>& args) {
 	if (client->getState() != UNAUTHENTICATED) {
 		client->reply(":server 462 PASS :You may not reregister");

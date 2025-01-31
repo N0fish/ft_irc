@@ -1,13 +1,13 @@
-#ifndef JOIN_COMMAND_HPP
-# define JOIN_COMMAND_HPP
+#ifndef KICK_COMMAND_HPP
+# define KICK_COMMAND_HPP
 
 # include "Command.hpp"
 # include "Client.hpp"
 # include "Channel.hpp"
 
-class JoinCommand : public Command {
+class KickCommand : public Command {
 	public:
-		JoinCommand(Server* server);
+		KickCommand(Server* server);
 		virtual void	execute(Client* client, const std::vector<std::string>& args);
 };
 
