@@ -21,6 +21,7 @@ void	Client::reply(const std::string& message) {
 		formattedMessage += "\r\n";
 	}
 	send(fd, formattedMessage.c_str(), formattedMessage.size(), 0);
+	std::cout << "fd: " << fd << ", formattedMessage: " << formattedMessage << std::endl;
 }
 
 ClientState	Client::getState() const {
@@ -99,4 +100,16 @@ bool	Client::isInvited(const std::string& channel) const {
 
 const std::vector<std::string>& Client::getChannels() const{
 	return (channels);
+}
+
+bool	Client::isRegistered() const {
+	return (state == REGISTERED);
+}
+
+std::string	Client::getIpAddr() const {
+	return ("192.168.1.72");
+}
+
+std::string	Client::getUserSymbol() const {
+	return ("+");
 }

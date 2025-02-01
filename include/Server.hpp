@@ -9,7 +9,7 @@ class Command;
 
 class PassCommand;
 class NickCommand;
-// class UserCommand;
+class UserCommand;
 class JoinCommand;
 class PartCommand;
 class PrivmsgCommand;
@@ -18,6 +18,8 @@ class KickCommand;
 class ModeCommand;
 class InviteCommand;
 class TopicCommand;
+class UserhostCommand;
+class ListCommand;
 
 class Server {
 	private:
@@ -40,8 +42,10 @@ class Server {
 		void	removeClientFromChannels(Client* client);
 		void	disconnectClient(Client* client);
 		void	deleteChannel(const std::string& channelName);
+		void	serverLayout();
 
 		friend class PassCommand;
+		friend class UserCommand;
 		friend class NickCommand;
 		friend class JoinCommand;
 
@@ -54,6 +58,9 @@ class Server {
 		friend class TopicCommand;
 		friend class ModeCommand;
 
+		friend class UserhostCommand;
+		// friend class ListCommand;
+
 	public:
 		Server(int port, const std::string &password);
 		~Server();
@@ -62,9 +69,10 @@ class Server {
 
 		std::string	getPassword() const;
 
-		Client*		findClientByNickname(const std::string& nickname) const;
-		Channel*	getChannel(const std::string& name);
-		Channel*	createChannel(const std::string& name, const std::string& pass, Client* creator);
+		Client*							findClientByNickname(const std::string& nickname) const;
+		Channel*						getChannel(const std::string& name);
+		std::map<std::string, Channel*>	getChannels();
+		Channel*						createChannel(const std::string& name, const std::string& pass, Client* creator);
 };
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef USER_COMMAND_HPP
-# define USER_COMMAND_HPP
+#ifndef USERCOMMAND_HPP
+# define USERCOMMAND_HPP
 
 # include "Command.hpp"
 # include "Client.hpp"

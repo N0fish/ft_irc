@@ -72,6 +72,10 @@ class Client {
 		void		addInvite(const std::string& channel);
 		bool		isInvited(const std::string& channel) const;
 
+		bool		isRegistered() const;
+		std::string	getIpAddr() const;
+		std::string	getUserSymbol() const;
+
 		const std::vector<std::string>&	getChannels() const; // Получение списка каналов
 };
 

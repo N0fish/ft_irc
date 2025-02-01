@@ -1,23 +1,13 @@
-# include "Client.hpp"
-# include "Channel.hpp"
-# include "Command.hpp"
-
-# include "PassCommand.hpp"
-# include "NickCommand.hpp"
-# include "UserCommand.hpp"
-# include "JoinCommand.hpp"
-# include "PartCommand.hpp"
-# include "PrivmsgCommand.hpp"
-# include "PingCommand.hpp"
-# include "KickCommand.hpp"
-# include "InviteCommand.hpp"
-# include "TopicCommand.hpp"
-# include "ModeCommand.hpp"
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Command.hpp"
+#include "libcmds.hpp"
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
 	initSocket();
 	initializeCommands();
+	serverLayout();
 }
 
 Server::~Server() {
@@ -113,7 +103,7 @@ void	Server::handleClient(int clientFd) {
 	}
 
 	std::string message(buffer);
-	std::cout << "Received from client " << clientFd << ": " << message << std::endl;
+	std::cout << "Received from client " << clientFd << ": \"" << message << "\"" << std::endl;
 
 	Client* client = findClientByFd(clientFd);
 	if (!client) {
@@ -127,6 +117,7 @@ void	Server::handleClient(int clientFd) {
 	while ((pos = client->getPartialMessage().find('\n')) != std::string::npos)
 	{
 		std::string	command = client->getPartialMessage().substr(0, pos);
+		std::cout << "[" << command << "]" << std::endl;
 		client->setPartialMessage(client->getPartialMessage().substr(pos + 1));
 
 		if (command.empty())
@@ -155,11 +146,15 @@ void	Server::initializeCommands() {
 	commands["PART"] = new PartCommand(this);
 	commands["PRIVMSG"] = new PrivmsgCommand(this);
 	commands["PING"] = new PingCommand(this);
+	commands["PONG"] = new PongCommand(this);
 
 	commands["KICK"] = new KickCommand(this);
 	commands["INVITE"] = new InviteCommand(this);
 	commands["TOPIC"] = new TopicCommand(this);
 	commands["MODE"] = new ModeCommand(this);
+
+	commands["USERHOST"] = new UserhostCommand(this);
+	commands["LIST"] = new ListCommand(this);
 }
 
 void	Server::removeClientFromChannels(Client* client) {
@@ -220,7 +215,7 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 	std::string			cmd;
 	iss >> cmd;
 
-	if (client->getState() != REGISTERED 
+	if (!client->isRegistered() 
 		&& cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
 		client->reply(":server 451 " + cmd + " :You have not registered");
 		return ;
@@ -235,6 +230,10 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 		commands[cmd]->execute(client, args);
 	} else
 		client->reply(":server 421 " + cmd + " :Unknown command");
+}
+
+void	Server::serverLayout() {
+	createChannel("#general", "", NULL);
 }
 
 void	Server::run() {
@@ -264,6 +263,10 @@ void	Server::run() {
 	}
 }
 
+std::map<std::string, Channel*> Server::getChannels() {
+	return (channels);
+}
+
 std::string	Server::getPassword() const { 
 	return (password); 
 }
@@ -288,7 +291,8 @@ Channel*	Server::createChannel(const std::string& name, const std::string& pass,
 	if (channels.find(name) == channels.end()) {
 		Channel* newChannel = new Channel(name, pass);
 		channels[name] = newChannel;
-		newChannel->addClient(creator);
+		if (creator != NULL)
+			newChannel->addClient(creator);
 		return (newChannel);
 	}
 	return (NULL);
@@ -311,7 +315,7 @@ Client*	Server::findClientByNickname(const std::string& nickname) const {
 	for (std::vector<Client*>::const_iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
 		Client* client = *it;
 		if (client->getNickname() == nickname) {
-		return (client);
+			return (client);
 		}
 		if (client->getNickname() == nickname) {
 			return (client);

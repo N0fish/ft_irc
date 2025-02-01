@@ -25,7 +25,7 @@ void	NickCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 	client->setNickname(args[0]);
 	client->setNicknameSet(true);
-	client->reply(":server 001 " + args[0] + " :Nickname set successfully");
+	client->reply(":server NOTICE " + args[0] + " :Nickname set successfully");
 
 	if (client->isNicknameSet() && client->isUsernameSet()) {
 		client->setState(REGISTERED);

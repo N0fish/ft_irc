@@ -4,17 +4,13 @@
 JoinCommand::JoinCommand(Server* server) : Command(server) {}
 
 void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) {
-	if (client->getState() != REGISTERED) {
-		client->reply(":server 451 JOIN :You have not registered");
-		return ; // необязательно, по хорошему эта проверка уже есть в сервере, но перед тем как убрать, сдедать тест 
-	}
-
 	if (args.empty()) {
 		client->reply(":server 461 JOIN :Not enough parameters");
 		return ;
 	}
 
 	std::string	channelName = args[0];
+	std::cout << "channelName "+ channelName << std::endl;
 	std::string	pass = args.size() > 1 ? args[1] : "";
 
 	// JOIN 0 – клиент выходит из всех каналов
@@ -106,7 +102,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 	}
 
 	// Сообщаем о входе
-	std::string joinMsg = ":" + client->getPrefix() + " JOIN " + channelName;
+	std::string joinMsg = client->getPrefix() + " JOIN " + channelName;
 	channel->broadcast(joinMsg, NULL);
 
 	// Отправляем информацию о канале (Topic, User List)
