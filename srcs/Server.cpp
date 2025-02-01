@@ -167,7 +167,11 @@ void	Server::removeClientFromChannels(Client* client) {
 		it->second->removeClient(client);
 		if (it->second->isEmpty()) {
 			delete it->second;
-			it = channels.erase(it);
+			std::map<std::string, Channel*>::iterator next = it;
+			++next;
+			delete it->second;
+			channels.erase(it);
+			it = next;
 		} else
 			++it;
 	}

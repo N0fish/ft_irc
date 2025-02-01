@@ -9,6 +9,7 @@
 # include <stdexcept>
 # include <iostream>
 # include <cstring>
+# include <sstream>
 # include <unistd.h>
 # include <fcntl.h>
 # include <cerrno>
