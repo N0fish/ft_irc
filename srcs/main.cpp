@@ -1,4 +1,17 @@
 #include "Server.hpp"
+#include "libraries.hpp"
+
+
+// obligatoire pour etre utilisee dans signal_handler
+Server* g_server = NULL;
+
+void signal_handler(int signal) {
+    if (signal == SIGINT && g_server != NULL) {
+		g_server->cleanup();
+		g_server = NULL;
+        std::exit(EXIT_SUCCESS);
+    }
+}
 
 int	main(int argc, char *argv[])
 {
@@ -9,9 +22,10 @@ int	main(int argc, char *argv[])
 
 	int port = std::atoi(argv[1]);
 	std::string password = argv[2];
-
+	std::signal(SIGINT, signal_handler);
 	try {
 		Server server(port, password);
+		g_server = &server;
 		server.run();
 		server.cleanup();
 	} catch (const std::exception &e) {

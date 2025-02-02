@@ -16,14 +16,16 @@ Server::~Server() {
 }
 
 void	Server::cleanup() {
+	std::cout << std::endl << "🧹 Server cleanup in progress..." << std::endl;
 	close(serverSocket);
 	
 	for (size_t i = 0; i < clients.size(); ++i) {
 		close(clients[i].fd);
 	}
+	// nettoie tout
 	clients.clear();
-
-	std::cout << "clients " << clients[0].fd << std::endl;
+	// nettoie vraiment tout et vide le vector
+	std::vector<pollfd>().swap(clients);
 
 	for (size_t i = 0; i < clientObjects.size(); ++i) {
 		delete clientObjects[i];
@@ -43,7 +45,7 @@ void	Server::cleanup() {
 		it = next;
 	}
 
-	// std::cout << "Server cleanup complete." << std::endl;
+	std::cout << std::endl << "👌 Server cleanup complete." << std::endl;
 }
 
 void	Server::initSocket() {
@@ -74,7 +76,7 @@ void	Server::initSocket() {
 		throw std::runtime_error("Listen failed");
 	}
 
-	std::cout << "Server started on port " << port << std::endl;
+	std::cout << "🏁 Server started on port " << port << std::endl;
 }
 
 // сервер создаёт клиента (Client) при подключении

@@ -17,6 +17,8 @@
 # include <cerrno>
 # include <set>
 # include <algorithm>
+# include <csignal>
+# include <cstdlib>
 
 std::vector<std::string> split(const std::string &str, char delimiter);
 
