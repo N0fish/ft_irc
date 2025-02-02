@@ -34,7 +34,7 @@ void	PartCommand::execute(Client* client, const std::vector<std::string>& args) 
 		}
 
 		// Отправляем сообщение о выходе
-		std::string partMsg = ":" + client->getPrefix() + " PART " + channelNames[i];
+		std::string partMsg = client->getPrefix() + " PART " + channelNames[i];
 		if (!reason.empty()) {
 			partMsg += " :" + reason;
 		}

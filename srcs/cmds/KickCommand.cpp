@@ -45,7 +45,7 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 	}
 
 	// Отправляем сообщение о кике
-	std::string kickMsg = ":" + client->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
+	std::string kickMsg = client->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 	channel->broadcast(kickMsg, NULL);
 
 	// Удаляем пользователя из канала

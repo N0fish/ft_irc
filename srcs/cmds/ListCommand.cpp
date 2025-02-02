@@ -12,7 +12,7 @@ void	ListCommand::execute(Client* client, const std::vector<std::string>& args) 
 		ss << channel->getUserCount();
 		client->reply(":server 322 " + client->getNickname() 
 							+ " " + channel->getName()
-							+ " " + ss.str() + " :Bienvenue sur #general");
+							+ " " + ss.str() + " :Bienvenue sur "+ channel->getName());
 	}
 	client->reply(":server 323 " + client->getNickname() + " :End of LIST");
 }

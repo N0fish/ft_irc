@@ -181,6 +181,9 @@ void	Server::initializeCommands() {
 	commands["QUIT"] = new QuitCommand(this);
 	commands["WHOIS"] = new WhoisCommand(this);
 	commands["INFO"] = new InfoCommand(this);
+
+	commands["NAMES"] = new NamesCommand(this);
+
 	// commands["VERSION"] = new VersionCommand(this);
 	// commands["ADMIN"] = new AdminCommand(this);
 }
@@ -299,6 +302,15 @@ void	Server::run() {
 
 const std::map<std::string, Channel*>&	Server::getChannels() const {
 	return (channels);
+}
+
+const std::vector<std::string>	Server::getChannelsName() {
+	std::vector<std::string> resp;
+
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); it++) {
+		resp.push_back(it->second->getName());
+	}
+	return resp;
 }
 
 std::string	Server::getPassword() const { 

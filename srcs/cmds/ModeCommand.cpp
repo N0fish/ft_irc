@@ -3,7 +3,7 @@
 ModeCommand::ModeCommand(Server* server) : Command(server) {}
 
 void	ModeCommand::execute(Client* client, const std::vector<std::string>& args) {
-	if (args.size() < 1) {
+	if (args.size() < 2) {
 		client->reply(":server 461 MODE :Not enough parameters");
 		return ;
 	}

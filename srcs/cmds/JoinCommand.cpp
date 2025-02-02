@@ -1,4 +1,5 @@
 #include "JoinCommand.hpp"
+#include "NamesCommand.hpp"
 #include "libraries.hpp"
 
 // Конструктор команды JOIN
@@ -21,7 +22,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 				Channel* channel = _server->getChannel(client->getChannels()[i]);
 				if (channel) {
 					channel->removeClient(client);
-					channel->broadcast(":" + client->getPrefix() + " PART " + channel->getName(), NULL);
+					channel->broadcast(client->getPrefix() + " PART " + channel->getName(), NULL);
 					client->leaveChannel(channel->getName());
 
 					if (channel->isEmpty()) {
@@ -111,14 +112,8 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		if (!channel->getTopic().empty()) {
 			client->reply(":server 332 " + client->getNickname() + " " + channelName + " :" + channel->getTopic());
 		}
-
-		// Отправляем список пользователей в канале
-		std::string userList = ":server 353 " + client->getNickname() + " = " + channelName + " :";
-		for (std::set<Client*>::iterator it = channel->getClients().begin(); it != channel->getClients().end(); ++it) {
-			userList += (*it)->getNickname() + " ";
-		}
-		client->reply(userList);
-		client->reply(":server 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list");
+		std::vector<std::string> channels(1, channelName);
+		(NamesCommand (_server)).execute(client, channels);
 	}
 }
 

@@ -67,6 +67,7 @@ class Server {
 		friend class QuitCommand;
 		// friend class WhoisCommand;
 		friend class InfoCommand;
+		// friend class NamesCommand;
 
 
 	public:
@@ -82,6 +83,7 @@ class Server {
 		Client*									findClientByNickname(const std::string& nickname) const;
 		Channel*								getChannel(const std::string& name);
 		const std::map<std::string, Channel*>&	getChannels() const;
+		const std::vector<std::string> 			getChannelsName();
 		Channel*								createChannel(const std::string& name, const std::string& pass, Client* creator);
 		time_t									getCreationTime() const;
 };

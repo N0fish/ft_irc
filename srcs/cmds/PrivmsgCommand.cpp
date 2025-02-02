@@ -38,7 +38,7 @@ void	PrivmsgCommand::execute(Client* client, const std::vector<std::string>& arg
 		}
 
 		// Отправляем сообщение всем участникам канала, кроме отправителя
-		std::string msg = ":" + client->getPrefix() + " PRIVMSG " + target + " :" + message;
+		std::string msg = client->getPrefix() + " PRIVMSG " + target + " :" + message;
 		channel->broadcast(msg, client);
 	}
 	// Если сообщение отправляется пользователю
@@ -49,7 +49,7 @@ void	PrivmsgCommand::execute(Client* client, const std::vector<std::string>& arg
 			return ;
 		}
 
-		std::string msg = ":" + client->getPrefix() + " PRIVMSG " + target + " :" + message;
+		std::string msg = client->getPrefix() + " PRIVMSG " + target + " :" + message;
 		recipient->reply(msg);
 	}
 }
