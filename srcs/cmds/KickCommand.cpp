@@ -10,7 +10,10 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 	std::string channelName = args[0];
 	std::string targetNick = args[1];
-	std::string reason = (args.size() > 2) ? args[2] : "Kicked";
+	std::string reason = (args.size() > 2) ? joinArgs(args, 2) : "Kicked";
+	if (reason == "") {
+		reason = "Kicked";
+	}
 
 	if (channelName[0] != '#') {
 		client->reply(":server 476 " + channelName + " :Invalid channel name");
@@ -50,6 +53,7 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 	// Удаляем пользователя из канала
 	channel->removeClient(targetClient);
+	targetClient->leaveChannel(channel->getName());
 	if (channel->isEmpty()) {
 		_server->deleteChannel(channelName);
 	}

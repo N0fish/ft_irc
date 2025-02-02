@@ -10,7 +10,7 @@ void	ModeCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 	std::string channelName = args[0];
 	if (channelName[0] != '#') {
-		client->reply(":server 476 " + channelName + " :Invalid channel name");
+		client->reply(":server 403 " + channelName + " :No such channel");
 		return ;
 	}
 

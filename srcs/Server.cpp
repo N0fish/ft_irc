@@ -252,6 +252,7 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 	std::string			cmd;
 	iss >> cmd;
 
+	std::cout << "Client("<< client->getFd() <<") >> "<< command << std::endl;
 	if (!client->isRegistered() 
 		&& cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
 		client->reply(":server 451 " + cmd + " :You have not registered");

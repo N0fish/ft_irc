@@ -22,7 +22,7 @@ void	Client::reply(const std::string& message) {
 		formattedMessage += "\r\n";
 	}
 	send(fd, formattedMessage.c_str(), formattedMessage.size(), 0);
-	std::cout << "Client(" << fd << "): " << formattedMessage << std::endl;
+	std::cout << "Client(" << fd << ") << " << formattedMessage << std::endl;
 }
 
 ClientState	Client::getState() const {

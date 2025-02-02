@@ -47,6 +47,9 @@ void TopicCommand::execute(Client* client, const std::vector<std::string>& args)
 
 	// Меняем тему канала
 	std::string newTopic = args[1];
+    if (newTopic.size() > 0 && newTopic[0] == ':') {
+        newTopic.erase(0, 1);
+    }
 	channel->setTopic(newTopic, client);
 
 	// Рассылаем всем пользователям обновлённую тему
