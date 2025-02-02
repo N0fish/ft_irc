@@ -4,6 +4,8 @@
 NamesCommand::NamesCommand(Server* server) : Command(server) {}
 
 void	NamesCommand::execute(Client* client, const std::vector<std::string>& args) {
+	if (client == NULL)
+		return ;
 	std::vector<std::string> channels;
 	
 	if (args.empty()) {
