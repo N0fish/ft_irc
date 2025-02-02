@@ -5,28 +5,45 @@
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
-	creationTime = time(NULL);  // время запуска
+	creationTime = time(NULL);
 	initSocket();
 	initializeCommands();
 	serverLayout();
 }
 
 Server::~Server() {
+	cleanup();
+}
+
+void	Server::cleanup() {
 	close(serverSocket);
+	
 	for (size_t i = 0; i < clients.size(); ++i) {
 		close(clients[i].fd);
 	}
+	clients.clear();
+
+	std::cout << "clients " << clients[0].fd << std::endl;
+
 	for (size_t i = 0; i < clientObjects.size(); ++i) {
 		delete clientObjects[i];
 	}
 	clientObjects.clear();
+
 	for (std::map<std::string, Command*>::iterator it = commands.begin(); it != commands.end(); ++it) {
 		delete it->second;
 	}
+	commands.clear();
+
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
-		deleteChannel(it->first);
-		it = channels.begin();
+		delete it->second;
+		std::map<std::string, Channel*>::iterator next = it;
+		++next;
+		channels.erase(it);
+		it = next;
 	}
+
+	// std::cout << "Server cleanup complete." << std::endl;
 }
 
 void	Server::initSocket() {
@@ -84,27 +101,20 @@ void	Server::acceptConnection() {
 	std::cout << "New client connected: " << clientFd << std::endl;
 }
 
-// сервер получает команды от клиента
 void	Server::handleClient(int clientFd) {
 	char	buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
 	ssize_t	bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-	// recv() получает данные от клиента.
-	// Сообщение разбивается по \n, чтобы обработать каждую команду.
-	// handleCommand(client, command); передаёт команду в обработчик.
 
 	if (bytesRead <= 0) {
 		if (bytesRead < 0 && errno != EWOULDBLOCK) {
 			std::cerr << "Recv error for client " << clientFd << std::endl;
 		}
-		Client* client = findClientByFd(clientFd); // Найдём клиента и отключим его
+		Client*	client = findClientByFd(clientFd);
 		if (client)
-			disconnectClient(client); // Закрываем соединение
-		return ; // Завершаем обработку клиента
+			disconnectClient(client);
+		return ;
 	}
-
-	std::string message(buffer);
-	std::cout << "Client(" << clientFd << "): " << message << std::endl;
 
 	Client* client = findClientByFd(clientFd);
 	if (!client) {
@@ -112,6 +122,7 @@ void	Server::handleClient(int clientFd) {
 		return ;
 	}
 
+	std::string	message(buffer);
 	client->setPartialMessage(client->getPartialMessage() + message);
 
 	size_t	pos;
@@ -121,22 +132,18 @@ void	Server::handleClient(int clientFd) {
 		client->setPartialMessage(client->getPartialMessage().substr(pos + 1));
 
 		if (command.empty())
-			continue;
+			continue ;
 
 		handleCommand(client, command);
-	}
 
-	if (client->getPartialMessage() == "\n")
-		client->setPartialMessage("");
+		if (findClientByFd(clientFd) == NULL)
+			return ;
+	}
 }
+
 
 // Команды добавляются в std::map<std::string, Command*> 
 // commands в методе initializeCommands().
-
-	// initializeCommands добавлен в конструктор в начале
-	// Когда сервер создаётся, он наполняет commands.
-	// Когда клиент вводит NICK, PASS, USER, сервер вызывает соответствующий объект.
-
 void	Server::initializeCommands() {
 	commands["PASS"] = new PassCommand(this);
 	commands["NICK"] = new NickCommand(this);
@@ -180,11 +187,11 @@ void	Server::removeClientFromChannels(Client* client) {
 }
 
 void	Server::disconnectClient(Client* client) {
-	if (client == NULL)
-		return ;
-	removeClientFromChannels(client);
+	if (!client)
+		return;
 
 	int	fd = client->getFd();
+	removeClientFromChannels(client);
 
 	for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		if (it->fd == fd) {
@@ -196,6 +203,7 @@ void	Server::disconnectClient(Client* client) {
 	for (std::vector<Client*>::iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
 		if (*it == client) {
 			delete client;
+			*it = NULL;
 			clientObjects.erase(it);
 			break ;
 		}
@@ -205,6 +213,7 @@ void	Server::disconnectClient(Client* client) {
 	std::cout	<< "Client(" << fd << ") disconnected"
 				<< std::endl;
 }
+
 
 bool	Server::isNicknameTaken(const std::string& nickname) const {
 	for (size_t i = 0; i < clientObjects.size(); ++i) {
@@ -272,9 +281,6 @@ void	Server::run() {
 	}
 }
 
-// std::map<std::string, Channel*> Server::getChannels() {
-// 	return (channels);
-// }
 const std::map<std::string, Channel*>&	Server::getChannels() const {
 	return (channels);
 }

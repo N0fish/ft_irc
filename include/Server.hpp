@@ -34,7 +34,7 @@ class Server {
 		std::vector<Client*>			clientObjects;
 		std::map<std::string, Command*>	commands;
 		std::map<std::string, Channel*>	channels;
-		time_t							creationTime;  // Время запуска сервера
+		time_t							creationTime;
 
 		void	initSocket();
 		void	acceptConnection();
@@ -74,13 +74,13 @@ class Server {
 		~Server();
 
 		void		run();
+		void		cleanup();
 
 		std::string	getPassword() const;
 		std::string getHostname() const;
 
 		Client*									findClientByNickname(const std::string& nickname) const;
 		Channel*								getChannel(const std::string& name);
-		// std::map<std::string, Channel*>			getChannels();
 		const std::map<std::string, Channel*>&	getChannels() const;
 		Channel*								createChannel(const std::string& name, const std::string& pass, Client* creator);
 		time_t									getCreationTime() const;
