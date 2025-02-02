@@ -21,6 +21,7 @@ class TopicCommand;
 class UserhostCommand;
 class ListCommand;
 // class QuitCommand;
+// class WhoisCommand;
 
 class Server {
 	private:
@@ -62,6 +63,7 @@ class Server {
 		friend class UserhostCommand;
 		// friend class ListCommand;
 		friend class QuitCommand;
+		// friend class WhoisCommand;
 
 
 	public:

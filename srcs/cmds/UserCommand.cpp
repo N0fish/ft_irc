@@ -25,7 +25,12 @@ void	UserCommand::execute(Client* client, const std::vector<std::string>& args) 
 		return ;
 	}
 
-	if (args.empty()) {
+	// if (args.empty()) {
+	// 	client->reply(":server 461 USER :Not enough parameters");
+	// 	return ;
+	// }
+
+	if (args.size() < 4) {
 		client->reply(":server 461 USER :Not enough parameters");
 		return ;
 	}

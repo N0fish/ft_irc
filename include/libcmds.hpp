@@ -16,5 +16,6 @@
 # include "UserhostCommand.hpp"
 # include "ListCommand.hpp"
 # include "QuitCommand.hpp"
+# include "WhoisCommand.hpp"
 
 #endif

@@ -155,6 +155,9 @@ void	Server::initializeCommands() {
 	commands["USERHOST"] = new UserhostCommand(this);
 	commands["LIST"] = new ListCommand(this);
 	commands["QUIT"] = new QuitCommand(this);
+	commands["WHOIS"] = new WhoisCommand(this);
+	// commands["VERSION"] = new VersionCommand(this);
+	// commands["ADMIN"] = new AdminCommand(this);
 }
 
 void	Server::removeClientFromChannels(Client* client) {
