@@ -157,7 +157,7 @@ void	Server::initializeCommands() {
 	commands["LIST"] = new ListCommand(this);
 	commands["QUIT"] = new QuitCommand(this);
 	commands["WHOIS"] = new WhoisCommand(this);
-	commands["INFO"] = new WhoisCommand(this);
+	commands["INFO"] = new InfoCommand(this);
 	// commands["VERSION"] = new VersionCommand(this);
 	// commands["ADMIN"] = new AdminCommand(this);
 }
