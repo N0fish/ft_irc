@@ -158,6 +158,8 @@ void	Server::initializeCommands() {
 }
 
 void	Server::removeClientFromChannels(Client* client) {
+	if (client == NULL)
+		return ;
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
 		it->second->removeClient(client);
 		if (it->second->isEmpty()) {
@@ -173,6 +175,8 @@ void	Server::removeClientFromChannels(Client* client) {
 }
 
 void	Server::disconnectClient(Client* client) {
+	if (client == NULL)
+		return ;
 	removeClientFromChannels(client);
 
 	int	fd = client->getFd();

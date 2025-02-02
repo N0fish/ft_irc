@@ -76,7 +76,8 @@ class Client {
 		std::string	getIpAddr() const;
 		std::string	getUserSymbol() const;
 
-		const std::vector<std::string>&	getChannels() const; // Получение списка каналов
+		const 		std::vector<std::string>&	getChannels() const; // Получение списка каналов
+		void		registerAction(Server *server);
 };
 
 #endif

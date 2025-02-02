@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "ListCommand.hpp"
 
 Client::Client(int fd) :	fd(fd),
 							state(UNAUTHENTICATED),
@@ -21,7 +22,7 @@ void	Client::reply(const std::string& message) {
 		formattedMessage += "\r\n";
 	}
 	send(fd, formattedMessage.c_str(), formattedMessage.size(), 0);
-	std::cout << "fd: " << fd << ", formattedMessage: " << formattedMessage << std::endl;
+	std::cout << "fd: " << fd << ", msg: " << formattedMessage << std::endl;
 }
 
 ClientState	Client::getState() const {
@@ -112,4 +113,13 @@ std::string	Client::getIpAddr() const {
 
 std::string	Client::getUserSymbol() const {
 	return ("+");
+}
+
+void		Client::registerAction(Server *server) {
+	setState(REGISTERED);
+	reply(":server 001 " + getNickname() + " :Welcome to the IRC network "+ getNickname() + "!!!");
+	reply("PING :server");
+	Command *listCmd = new ListCommand(server);
+	listCmd->execute(this, std::vector<std::string>());
+	delete listCmd;
 }

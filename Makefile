@@ -7,7 +7,8 @@ OBJDIR = ./obj/
 SRCDIR = ./srcs/
 INCDIR = ./include/
 
-SRC = Server.cpp Client.cpp Channel.cpp \
+SRC = utils.cpp \
+	Server.cpp Client.cpp Channel.cpp \
 	PassCommand.cpp NickCommand.cpp UserCommand.cpp \
 	JoinCommand.cpp PartCommand.cpp PrivmsgCommand.cpp PingCommand.cpp \
 	KickCommand.cpp ModeCommand.cpp InviteCommand.cpp TopicCommand.cpp \
