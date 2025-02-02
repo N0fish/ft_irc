@@ -20,6 +20,7 @@ class InviteCommand;
 class TopicCommand;
 class UserhostCommand;
 class ListCommand;
+// class QuitCommand;
 
 class Server {
 	private:
@@ -60,6 +61,8 @@ class Server {
 
 		friend class UserhostCommand;
 		// friend class ListCommand;
+		friend class QuitCommand;
+
 
 	public:
 		Server(int port, const std::string &password);

@@ -13,7 +13,6 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 	std::vector<std::string> channels = split(args[0], ',');
 	for (size_t i = 0; i < channels.size(); i++) {
 		std::string	channelName = channels[i];
-		std::cout << "channelName "+ channelName << std::endl;
 		std::string	pass = args.size() > 1 ? args[1] : "";
 
 		// JOIN 0 – клиент выходит из всех каналов

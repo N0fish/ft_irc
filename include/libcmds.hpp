@@ -15,5 +15,6 @@
 # include "ModeCommand.hpp"
 # include "UserhostCommand.hpp"
 # include "ListCommand.hpp"
+# include "QuitCommand.hpp"
 
 #endif

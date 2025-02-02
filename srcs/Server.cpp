@@ -103,7 +103,7 @@ void	Server::handleClient(int clientFd) {
 	}
 
 	std::string message(buffer);
-	std::cout << "Received from client " << clientFd << ": \"" << message << "\"" << std::endl;
+	std::cout << "Client(" << clientFd << "): " << message << std::endl;
 
 	Client* client = findClientByFd(clientFd);
 	if (!client) {
@@ -117,7 +117,6 @@ void	Server::handleClient(int clientFd) {
 	while ((pos = client->getPartialMessage().find('\n')) != std::string::npos)
 	{
 		std::string	command = client->getPartialMessage().substr(0, pos);
-		std::cout << "[" << command << "]" << std::endl;
 		client->setPartialMessage(client->getPartialMessage().substr(pos + 1));
 
 		if (command.empty())
@@ -155,6 +154,7 @@ void	Server::initializeCommands() {
 
 	commands["USERHOST"] = new UserhostCommand(this);
 	commands["LIST"] = new ListCommand(this);
+	commands["QUIT"] = new QuitCommand(this);
 }
 
 void	Server::removeClientFromChannels(Client* client) {
@@ -162,7 +162,7 @@ void	Server::removeClientFromChannels(Client* client) {
 		return ;
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
 		it->second->removeClient(client);
-		if (it->second->isEmpty()) {
+		if (!it->second->isEmpty()) {
 			delete it->second;
 			std::map<std::string, Channel*>::iterator next = it;
 			++next;
@@ -197,7 +197,7 @@ void	Server::disconnectClient(Client* client) {
 	}
 
 	close(fd);
-	std::cout	<< "Client " << fd << " disconnected."
+	std::cout	<< "Client(" << fd << ") disconnected"
 				<< std::endl;
 }
 

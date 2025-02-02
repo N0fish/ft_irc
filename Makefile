@@ -12,7 +12,7 @@ SRC = utils.cpp \
 	PassCommand.cpp NickCommand.cpp UserCommand.cpp \
 	JoinCommand.cpp PartCommand.cpp PrivmsgCommand.cpp PingCommand.cpp \
 	KickCommand.cpp ModeCommand.cpp InviteCommand.cpp TopicCommand.cpp \
-	UserhostCommand.cpp PongCommand.cpp ListCommand.cpp \
+	UserhostCommand.cpp PongCommand.cpp ListCommand.cpp QuitCommand.cpp \
 	main.cpp 
 OBJS = $(SRC:%.cpp=$(OBJDIR)%.o)
 
