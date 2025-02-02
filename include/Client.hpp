@@ -28,6 +28,8 @@ enum ClientState {
 class Client {
 	private:
 		int							fd;				// Дескриптор клиента
+		std::string					ip;
+		uint16_t 					port;
 		ClientState					state;			// Новый статус клиента
 		std::string					partialMessage;	// Буфер для неполных сообщений
 		std::string					nickname;		// Никнейм клиента
@@ -39,7 +41,7 @@ class Client {
 		std::set<std::string>		invitedChannels;
 
 	public:
-		Client(int fd);
+		Client(int fd, std::string, uint16_t port);
 		~Client();
 
 		int			getFd() const;

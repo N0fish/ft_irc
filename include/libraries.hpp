@@ -6,6 +6,8 @@
 # include <map>
 # include <poll.h>
 # include <netinet/in.h>
+# include <sys/socket.h>
+# include <arpa/inet.h>
 # include <stdexcept>
 # include <iostream>
 # include <cstring>

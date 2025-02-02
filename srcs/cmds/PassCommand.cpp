@@ -27,7 +27,6 @@ void	PassCommand::execute(Client* client, const std::vector<std::string>& args) 
 		client->setState(PASS_PROVIDED);
 		client->reply(":server NOTICE * :Authentication successful");
 	}
-
 	else {
 		client->reply(":server 464 :Password incorrect");
 		_server->disconnectClient(client);

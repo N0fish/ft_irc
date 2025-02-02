@@ -52,28 +52,29 @@ void	UserCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 	// Если PASS, NICK и USER уже введены, клиент считается зарегистрированным
 	if (client->isNicknameSet() && client->isUsernameSet()) {
-		client->setState(REGISTERED);
+		client->registerAction(_server);
+		// client->setState(REGISTERED);
 
-		// Отправляем приветствие и код 001
-		client->reply(":" + _server->getHostname() + " 001 " + client->getNickname() +
-					" :Welcome to the IRC Network " + client->getNickname() + "!" +
-					client->getUsername() + "@" + _server->getHostname());
+		// // Отправляем приветствие и код 001
+		// client->reply(":" + _server->getHostname() + " 001 " + client->getNickname() +
+		// 			" :Welcome to the IRC Network " + client->getNickname() + "!" +
+		// 			client->getUsername() + "@" + _server->getHostname());
 
-		client->reply(":" + _server->getHostname() + " 002 " + client->getNickname() +
-					" :Your host is " + _server->getHostname() + ", running version 1.0");
+		// client->reply(":" + _server->getHostname() + " 002 " + client->getNickname() +
+		// 			" :Your host is " + _server->getHostname() + ", running version 1.0");
 
-		std::stringstream	ss;
-		ss << _server->getCreationTime();
-		client->reply(":" + _server->getHostname() + " 003 " + client->getNickname() +
-					" :This server was created " + ss.str());
+		// std::stringstream	ss;
+		// ss << _server->getCreationTime();
+		// client->reply(":" + _server->getHostname() + " 003 " + client->getNickname() +
+		// 			" :This server was created " + ss.str());
 
-		client->reply(":" + _server->getHostname() + " 004 " + client->getNickname() +
-					" " + _server->getHostname() + " 1.0 o i k l b t");
+		// client->reply(":" + _server->getHostname() + " 004 " + client->getNickname() +
+		// 			" " + _server->getHostname() + " 1.0 o i k l b t");
 
-		// Отправляем список каналов после подключения
-		Command *listCmd = new ListCommand(_server);
-		listCmd->execute(client, std::vector<std::string>());
-		delete listCmd;
+		// // Отправляем список каналов после подключения
+		// Command *listCmd = new ListCommand(_server);
+		// listCmd->execute(client, std::vector<std::string>());
+		// delete listCmd;
 	}
 
 	// _server->handleCommand(client, "LIST");

@@ -1,7 +1,7 @@
 #include "Client.hpp"
 #include "ListCommand.hpp"
 
-Client::Client(int fd) :	fd(fd),
+Client::Client(int fd, std::string ip, uint16_t port) :	fd(fd), ip(ip), port(port),
 							state(UNAUTHENTICATED),
 							nicknameSet(false),
 							usernameSet(false) {}
@@ -116,7 +116,7 @@ bool	Client::isRegistered() const {
 }
 
 std::string	Client::getIpAddr() const {
-	return ("192.168.1.72");
+	return (ip);
 }
 
 std::string	Client::getUserSymbol() const {
@@ -126,6 +126,20 @@ std::string	Client::getUserSymbol() const {
 void		Client::registerAction(Server *server) {
 	setState(REGISTERED);
 	reply(":server 001 " + getNickname() + " :Welcome to the IRC network "+ getNickname() + "!!!");
+	// client->reply(":" + _server->getHostname() + " 001 " + client->getNickname() +
+	// 			" :Welcome to the IRC Network " + client->getNickname() + "!" +
+	// 			client->getUsername() + "@" + _server->getHostname());
+
+	// client->reply(":" + _server->getHostname() + " 002 " + client->getNickname() +
+	// 			" :Your host is " + _server->getHostname() + ", running version 1.0");
+
+	// std::stringstream	ss;
+	// ss << _server->getCreationTime();
+	// client->reply(":" + _server->getHostname() + " 003 " + client->getNickname() +
+	// 			" :This server was created " + ss.str());
+
+	// client->reply(":" + _server->getHostname() + " 004 " + client->getNickname() +
+	// 			" " + _server->getHostname() + " 1.0 o i k l b t");
 	reply("PING :server");
 	Command *listCmd = new ListCommand(server);
 	listCmd->execute(this, std::vector<std::string>());

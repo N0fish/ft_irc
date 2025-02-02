@@ -83,13 +83,24 @@ void	Server::initSocket() {
 // - добавляет клиента в poll() для обработки событий
 // - создает новый объект Client и сохраняет его
 void	Server::acceptConnection() {
-	int clientFd = accept(serverSocket, NULL, NULL);
-	if (clientFd < 0) {
+    struct sockaddr_in clientAddr;
+	socklen_t addrLen = sizeof(clientAddr);
+	int clientFd = accept(serverSocket, (struct sockaddr *)&clientAddr, &addrLen);
+   	if (clientFd < 0) {
 		if (errno != EWOULDBLOCK) {
 			std::cerr << "Accept error" << std::endl;
 		}
 		return ;
 	}
+
+
+    // Récupération et affichage de l'IP du client
+    char clientIP[INET_ADDRSTRLEN];
+    if (!inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, INET_ADDRSTRLEN)) {
+		std::cerr << "Failed to get client IP" << std::endl;
+		return ;
+
+    }
 
 	// Add client to poll list
 	struct pollfd clientPoll;
@@ -97,8 +108,11 @@ void	Server::acceptConnection() {
 	clientPoll.events = POLLIN;
 	clients.push_back(clientPoll);
 
-	clientObjects.push_back(new Client(clientFd));
-	std::cout << "New client connected: " << clientFd << std::endl;
+	clientObjects.push_back(new Client(clientFd, std::string(clientIP), ntohs(clientAddr.sin_port)));
+	// std::cout << "New client connected: " << clientFd << std::endl;
+	std::cout << "New client connected: " << clientFd 
+			<< " (IP: " << clientIP << ", Port: " << ntohs(clientAddr.sin_port) << ")" 
+			<< std::endl;
 }
 
 void	Server::handleClient(int clientFd) {
