@@ -17,5 +17,6 @@
 # include "ListCommand.hpp"
 # include "QuitCommand.hpp"
 # include "WhoisCommand.hpp"
+# include "InfoCommand.hpp"
 
 #endif

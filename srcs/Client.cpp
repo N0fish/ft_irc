@@ -57,6 +57,14 @@ void	Client::setUsername(const std::string& user) {
 	username = user;
 }
 
+std::string	Client::getRealName() const {
+	return (realname);
+}
+
+void	Client::setRealName(const std::string& name) {
+	realname = name;
+}
+
 std::string	Client::getPrefix() const {
 	return (":" + nickname + "!" + username + "@server");
 }

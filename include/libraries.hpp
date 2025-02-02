@@ -13,7 +13,6 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <cerrno>
-# include <sstream>
 # include <set>
 # include <algorithm>
 

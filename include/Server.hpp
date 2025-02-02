@@ -22,6 +22,7 @@ class UserhostCommand;
 class ListCommand;
 // class QuitCommand;
 // class WhoisCommand;
+class InfoCommand;
 
 class Server {
 	private:
@@ -33,6 +34,7 @@ class Server {
 		std::vector<Client*>			clientObjects;
 		std::map<std::string, Command*>	commands;
 		std::map<std::string, Channel*>	channels;
+		time_t							creationTime;  // Время запуска сервера
 
 		void	initSocket();
 		void	acceptConnection();
@@ -61,9 +63,10 @@ class Server {
 		friend class ModeCommand;
 
 		friend class UserhostCommand;
-		// friend class ListCommand;
+		friend class ListCommand;
 		friend class QuitCommand;
 		// friend class WhoisCommand;
+		friend class InfoCommand;
 
 
 	public:
@@ -73,11 +76,14 @@ class Server {
 		void		run();
 
 		std::string	getPassword() const;
+		std::string getHostname() const;
 
-		Client*							findClientByNickname(const std::string& nickname) const;
-		Channel*						getChannel(const std::string& name);
-		std::map<std::string, Channel*>	getChannels();
-		Channel*						createChannel(const std::string& name, const std::string& pass, Client* creator);
+		Client*									findClientByNickname(const std::string& nickname) const;
+		Channel*								getChannel(const std::string& name);
+		// std::map<std::string, Channel*>			getChannels();
+		const std::map<std::string, Channel*>&	getChannels() const;
+		Channel*								createChannel(const std::string& name, const std::string& pass, Client* creator);
+		time_t									getCreationTime() const;
 };
 
 #endif

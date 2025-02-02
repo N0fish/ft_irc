@@ -5,6 +5,7 @@
 
 Server::Server(int port, const std::string &password):	port(port),
 														password(password) {
+	creationTime = time(NULL);  // время запуска
 	initSocket();
 	initializeCommands();
 	serverLayout();
@@ -156,6 +157,7 @@ void	Server::initializeCommands() {
 	commands["LIST"] = new ListCommand(this);
 	commands["QUIT"] = new QuitCommand(this);
 	commands["WHOIS"] = new WhoisCommand(this);
+	commands["INFO"] = new WhoisCommand(this);
 	// commands["VERSION"] = new VersionCommand(this);
 	// commands["ADMIN"] = new AdminCommand(this);
 }
@@ -270,12 +272,26 @@ void	Server::run() {
 	}
 }
 
-std::map<std::string, Channel*> Server::getChannels() {
+// std::map<std::string, Channel*> Server::getChannels() {
+// 	return (channels);
+// }
+const std::map<std::string, Channel*>&	Server::getChannels() const {
 	return (channels);
 }
 
 std::string	Server::getPassword() const { 
 	return (password); 
+}
+
+std::string	Server::getHostname() const {
+	char hostname[256];
+	memset(hostname, 0, sizeof(hostname));
+
+	if (gethostname(hostname, sizeof(hostname) - 1) != 0) {
+		std::cerr << "Error: gethostname() failed, using 'localhost'" << std::endl;
+		return ("localhost");
+	}
+	return (std::string(hostname));
 }
 
 Client*	Server::findClientByFd(int fd) {
@@ -329,4 +345,8 @@ Client*	Server::findClientByNickname(const std::string& nickname) const {
 		}
 	}
 	return (NULL);
+}
+
+time_t	Server::getCreationTime() const {
+    return (creationTime);
 }

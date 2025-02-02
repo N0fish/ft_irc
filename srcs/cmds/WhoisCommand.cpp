@@ -4,17 +4,19 @@ WhoisCommand::WhoisCommand(Server* server) : Command(server) {}
 
 void WhoisCommand::execute(Client* client, const std::vector<std::string>& args) {
 	if (args.empty()) {
-		client->reply(":server 431 WHOIS :No nickname given");
+		client->reply(":" + _server->getHostname() + " 431 :No nickname given");
 		return ;
 	}
 	
+	std::string targetNick = args[0];
 	Client* target = _server->findClientByNickname(args[0]);
 	if (!target) {
-		client->reply(":server 401 " + args[0] + " :No such nick");
+		client->reply(":" + _server->getHostname() + " 401 " + targetNick + " :No such nick");
 		return ;
 	}
 	
-	client->reply(":server 311 " + client->getNickname() + " " + target->getNickname() 
-					+ " " + target->getUsername() + " " + target->getIpAddr() + " * :Real Name");
-	client->reply(":server 318 " + client->getNickname() + " " + target->getNickname() + " :End of WHOIS list");
+	std::string whoisInfo = ":" + _server->getHostname() + " 311 " + client->getNickname() +
+							" " + target->getNickname() + " " + target->getUsername() + " " +
+							target->getIpAddr() + " * :" + target->getNickname();
+	client->reply(whoisInfo);
 }

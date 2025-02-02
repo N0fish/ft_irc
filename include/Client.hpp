@@ -32,6 +32,7 @@ class Client {
 		std::string					partialMessage;	// Буфер для неполных сообщений
 		std::string					nickname;		// Никнейм клиента
 		std::string					username;		// Имя пользователя клиента
+		std::string					realname;
 		bool						nicknameSet;	// Флаг установки никнейма
 		bool						usernameSet;	// Флаг установки имени пользователя
 		std::vector<std::string>	channels;		// Каналы, в которых состоит клиент
@@ -55,6 +56,9 @@ class Client {
 
 		std::string	getUsername() const;
 		void		setUsername(const std::string& user);
+
+		std::string	getRealName() const;
+		void		setRealName(const std::string& name);
 
 		std::string	getPrefix() const; // нужен серверу, чтобы формировать сообщения,  не изменяет состояние клиента, а просто возвращает данные.
 

@@ -14,7 +14,7 @@ COMMAND_SRC = 	cmds/PassCommand.cpp cmds/NickCommand.cpp cmds/UserCommand.cpp \
 	cmds/JoinCommand.cpp cmds/PartCommand.cpp cmds/PrivmsgCommand.cpp cmds/PingCommand.cpp \
 	cmds/KickCommand.cpp cmds/ModeCommand.cpp cmds/InviteCommand.cpp cmds/TopicCommand.cpp \
 	cmds/UserhostCommand.cpp cmds/PongCommand.cpp cmds/ListCommand.cpp cmds/QuitCommand.cpp \
-	cmds/WhoisCommand.cpp
+	cmds/WhoisCommand.cpp cmds/InfoCommand.cpp
 
 BASE_SRC = $(SERVER_SRC) $(COMMAND_SRC)
 SRC =  $(BASE_SRC) main.c
@@ -25,7 +25,8 @@ OBJS = $(OBJDIR)Server.o $(OBJDIR)Client.o $(OBJDIR)Channel.o $(OBJDIR)utils.o \
 	$(OBJDIR)cmds/PingCommand.o $(OBJDIR)cmds/KickCommand.o $(OBJDIR)cmds/ModeCommand.o \
 	$(OBJDIR)cmds/InviteCommand.o $(OBJDIR)cmds/TopicCommand.o $(OBJDIR)cmds/UserhostCommand.o \
 	$(OBJDIR)cmds/PongCommand.o $(OBJDIR)cmds/ListCommand.o $(OBJDIR)cmds/QuitCommand.o \
-	$(OBJDIR)cmds/WhoisCommand.o $(OBJDIR)main.o
+	$(OBJDIR)cmds/WhoisCommand.o $(OBJDIR)cmds/InfoCommand.o \
+	$(OBJDIR)main.o
 # $(SRC:%.c=$(OBJDIR)%.o)
 
 all: $(NAME)
