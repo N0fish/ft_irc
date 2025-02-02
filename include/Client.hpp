@@ -62,6 +62,7 @@ class Client {
 		std::string	getRealName() const;
 		void		setRealName(const std::string& name);
 
+		uint16_t	getPort() const;
 		std::string	getPrefix() const; // нужен серверу, чтобы формировать сообщения,  не изменяет состояние клиента, а просто возвращает данные.
 
 		bool		isNicknameSet() const;

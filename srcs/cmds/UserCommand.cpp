@@ -39,9 +39,24 @@ void	UserCommand::execute(Client* client, const std::vector<std::string>& args) 
 		return ;
 	}
 
+	if (args[0].size() > 9) {
+		client->reply(":" + _server->getHostname() + " 432 " + client->getNickname()
+					+ " USER :Username is too long (max 9 characters)");
+		return ;
+	}
+
 	client->setUsername(args[0]);
 	client->setUsernameSet(true);
-	client->setRealName(args[3]);
+	std::string	realname;
+	if (args[3][0] == ':') { 
+		realname = args[3].substr(1);
+		for (size_t i = 4; i < args.size(); ++i) {
+			realname += " " + args[i];
+		}
+	} 
+	else
+		realname = args[3];
+	client->setRealName(realname);
 
 	client->reply(":" + _server->getHostname() + " NOTICE " + client->getNickname() +
 				" :Username set successfully");

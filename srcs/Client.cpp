@@ -64,6 +64,9 @@ std::string	Client::getRealName() const {
 void	Client::setRealName(const std::string& name) {
 	realname = name;
 }
+uint16_t	Client::getPort() const {
+    return (port);
+}
 
 std::string	Client::getPrefix() const {
 	return (":" + nickname + "!" + username + "@server");
