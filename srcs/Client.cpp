@@ -152,3 +152,12 @@ void		Client::registerAction(Server *server) {
 	listCmd->execute(this, std::vector<std::string>());
 	delete listCmd;
 }
+
+std::string Client::getServer() const {
+	return "irc.example.com"; // Здесь можно вернуть `server->getHostname()`, если передавать сервер в клиент
+}
+
+// время бездействия 
+time_t Client::getIdleTime() const {
+	return time(NULL) - lastActivity;
+}

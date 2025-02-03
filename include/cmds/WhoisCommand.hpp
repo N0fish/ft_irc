@@ -1,6 +1,7 @@
 #ifndef WHOIS_COMMAND_HPP
 # define WHOIS_COMMAND_HPP
 
+#include <sstream>
 # include "Command.hpp"
 # include "Client.hpp"
 # include "Channel.hpp"

@@ -39,6 +39,7 @@ class Client {
 		bool						usernameSet;	// Флаг установки имени пользователя
 		std::vector<std::string>	channels;		// Каналы, в которых состоит клиент
 		std::set<std::string>		invitedChannels;
+		time_t						lastActivity; 
 
 	public:
 		Client(int fd, std::string, uint16_t port);
@@ -85,6 +86,9 @@ class Client {
 
 		const 		std::vector<std::string>&	getChannels() const; // Получение списка каналов
 		void		registerAction(Server *server);
+
+		std::string	getServer() const;
+		time_t		getIdleTime() const;
 };
 
 #endif
