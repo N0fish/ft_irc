@@ -86,6 +86,10 @@ class Server {
 		const std::vector<std::string> 			getChannelsName();
 		Channel*								createChannel(const std::string& name, const std::string& pass, Client* creator);
 		time_t									getCreationTime() const;
+		std::string 							getVersion() const;
+		std::string 							getOSInfo() const;
+		std::string 							getUptime() const;
+
 };
 
 #endif
