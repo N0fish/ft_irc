@@ -27,14 +27,24 @@ void WhoisCommand::execute(Client* client, const std::vector<std::string>& args)
     client->reply(whoisServer);
 
     //  Список каналов пользователя (RPL_WHOISCHANNELS - 319)
+// Проверяем, состоит ли пользователь в каналах перед отправкой 319
+if (!target->getChannels().empty()) {
     std::string whoisChannels = ":" + _server->getHostname() + " 319 " + client->getNickname() +
                                 " " + target->getNickname() + " :";
+
     const std::vector<std::string>& channels = target->getChannels();
-    for (size_t i = 0; i < channels.size(); ++i) {
-        if (i > 0) whoisChannels += " ";
-        whoisChannels += channels[i];
+    std::vector<std::string>::const_iterator it = channels.begin();
+
+    while (it != channels.end()) {
+        if (it != channels.begin()) {
+            whoisChannels += " ";
+        }
+        whoisChannels += *it;
+        ++it;
     }
+    
     client->reply(whoisChannels);
+}
 
     // Время бездействия пользователя (RPL_WHOISIDLE - 317)
     std::ostringstream ss; // Используем std::ostringstream вместо std::to_string() для C++98
