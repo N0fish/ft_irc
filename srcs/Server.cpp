@@ -31,6 +31,7 @@ void	Server::cleanup() {
 		delete clientObjects[i];
 	}
 	clientObjects.clear();
+	std::vector<Client*>().swap(clientObjects);
 
 	for (std::map<std::string, Command*>::iterator it = commands.begin(); it != commands.end(); ++it) {
 		delete it->second;
@@ -87,6 +88,7 @@ void	Server::initSocket() {
 void	Server::acceptConnection() {
     struct sockaddr_in clientAddr;
 	socklen_t addrLen = sizeof(clientAddr);
+	memset(&clientAddr, 0, sizeof(clientAddr));
 	int clientFd = accept(serverSocket, (struct sockaddr *)&clientAddr, &addrLen);
    	if (clientFd < 0) {
 		if (errno != EWOULDBLOCK) {
@@ -106,14 +108,16 @@ void	Server::acceptConnection() {
 
 	// Add client to poll list
 	struct pollfd clientPoll;
+	memset(&clientPoll, 0, sizeof(clientPoll));
 	clientPoll.fd = clientFd;
 	clientPoll.events = POLLIN;
 	clients.push_back(clientPoll);
 
+	uint16_t ClientPort = ntohs(clientAddr.sin_port);
 	clientObjects.push_back(new Client(clientFd, std::string(clientIP), ntohs(clientAddr.sin_port)));
 	// std::cout << "New client connected: " << clientFd << std::endl;
 	std::cout << "New client connected: " << clientFd 
-			<< " (IP: " << clientIP << ", Port: " << ntohs(clientAddr.sin_port) << ")" 
+			<< " (IP: " << clientIP << ", Port: " << ClientPort << ")" 
 			<< std::endl;
 }
 
@@ -276,6 +280,7 @@ void	Server::serverLayout() {
 
 void	Server::run() {
 	struct pollfd serverPoll;
+	memset(&serverPoll, 0, sizeof(serverPoll));
 	serverPoll.fd = serverSocket;
 	serverPoll.events = POLLIN;
 

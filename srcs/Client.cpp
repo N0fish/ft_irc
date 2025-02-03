@@ -4,7 +4,11 @@
 Client::Client(int fd, std::string ip, uint16_t port) :	fd(fd), ip(ip), port(port),
 							state(UNAUTHENTICATED),
 							nicknameSet(false),
-							usernameSet(false) {}
+							usernameSet(false) {
+	// std::cout	<< "Client created: FD=" << fd 
+	// 			<< ", IP=" << ip 
+	// 			<< ", Port=" << port << std::endl;
+}
 
 Client::~Client() {
 	if (fd >= 0)
