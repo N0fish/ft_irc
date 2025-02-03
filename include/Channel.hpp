@@ -63,6 +63,8 @@ class Channel {
 
 		void				broadcast(const std::string& message, Client* sender);
 		const std::set<Client*>& getClients() const;
+
+		bool 				isClientInChannel(Client* client) const;
 };
 
 #endif

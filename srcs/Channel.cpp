@@ -129,3 +129,12 @@ void	Channel::broadcast(const std::string& message, Client* sender) {
 const std::set<Client*>&	Channel::getClients() const {
 	return (clients);
 }
+
+bool Channel::isClientInChannel(Client* client) const {
+    for (std::set<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+        if ((*it)->getNickname() == client->getNickname()) {
+            return true;
+        }
+    }
+    return false;
+}
