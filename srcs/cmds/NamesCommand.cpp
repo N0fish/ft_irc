@@ -18,6 +18,12 @@ void	NamesCommand::execute(Client* client, const std::vector<std::string>& args)
 	for (size_t i = 0; i < chs; i++) {
 		std::string resp = "";
 		Channel *channel = _server->getChannel(channels[i]);
+
+		if (!channel) {
+			client->reply(":server 403 " + channels[i] + " :No such channel");
+			continue ;
+		}
+
 		resp += ":server 353 " +client->getNickname() + " "+ channel->getName() + " :";
 
 		std::set<Client*> clients = channel->getClients();

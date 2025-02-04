@@ -195,17 +195,23 @@ void	Server::initializeCommands() {
 void	Server::removeClientFromChannels(Client* client) {
 	if (client == NULL)
 		return ;
-	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
+
+	std::vector<std::string> emptyChannels;
+
+	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ++it) {
 		it->second->removeClient(client);
-		if (!it->second->isEmpty()) {
-			delete it->second;
-			std::map<std::string, Channel*>::iterator next = it;
-			++next;
+
+		if (it->second->isEmpty()) {
+			emptyChannels.push_back(it->first);
+		}
+	}
+
+	for (size_t i = 0; i < emptyChannels.size(); ++i) {
+		std::map<std::string, Channel*>::iterator it = channels.find(emptyChannels[i]);
+		if (it != channels.end()) {
 			delete it->second;
 			channels.erase(it);
-			it = next;
-		} else
-			++it;
+		}
 	}
 }
 
