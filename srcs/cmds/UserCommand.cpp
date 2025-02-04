@@ -4,6 +4,12 @@
 UserCommand::UserCommand(Server* server) : Command(server) {}
 
 void	UserCommand::execute(Client* client, const std::vector<std::string>& args) {
+	// проверить возможность вернуть эту функцию, по факту одно и тоже что и isUsernameSet(), но написана в едином стиле с PASS и NICK
+	// if (client->getState() == UNAUTHENTICATED) {
+	// 	client->reply(":" + _server->getHostname()
+	// 				+ " 462 " + client->getNickname() + " USER :You have not registered");
+	// 	return ;
+	// }
     if (client->isUsernameSet()) {
         client->reply(":" + _server->getHostname()
                     + " 462 " + client->getNickname() + " USER :You may not reregister");

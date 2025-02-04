@@ -399,12 +399,14 @@ std::string Server::getOSInfo() const {
     return "Running on Linux";
 }
 std::string Server::getUptime() const {
-    time_t currentTime = time(NULL);
-    time_t uptime = currentTime - creationTime;
-    int days = uptime / (60 * 60 * 24);
-    int hours = (uptime % (60 * 60 * 24)) / (60 * 60);
-    int minutes = (uptime % (60 * 60)) / 60;
-    char uptimeStr[50];
-    sprintf(uptimeStr, "%d days, %d hours, %d minutes", days, hours, minutes);
-    return std::string(uptimeStr);
+	time_t currentTime = time(NULL);
+	time_t uptime = currentTime - creationTime;
+	int days = uptime / (60 * 60 * 24);
+	int hours = (uptime % (60 * 60 * 24)) / (60 * 60);
+	int minutes = (uptime % (60 * 60)) / 60;
+
+	char uptimeStr[50];
+	snprintf(uptimeStr, sizeof(uptimeStr), "%d days, %d hours, %d minutes", days, hours, minutes);
+
+	return (std::string(uptimeStr));
 }
