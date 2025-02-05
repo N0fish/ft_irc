@@ -21,6 +21,11 @@ void InviteCommand::execute(Client* client, const std::vector<std::string>& args
 	std::string	targetNickname = args[0];
 	std::string	channelName = args[1];
 
+	if (targetNickname == client->getNickname()) {
+		client->reply(":server 481 " + targetNickname + " :You can't invite yourself");
+		return ;
+	}
+
 	Channel*	channel = _server->getChannel(channelName);
 	if (!channel) {
 		client->reply(":server 403 " + channelName + " :No such channel");
@@ -51,5 +56,5 @@ void InviteCommand::execute(Client* client, const std::vector<std::string>& args
 
 	channel->addInvite(targetClient);
 	client->reply(":server 341 " + client->getNickname() + " " + targetNickname + " " + channelName);
-	targetClient->reply(client->getPrefix() + " INVITE " + targetNickname + " :" + channelName);
+	targetClient->reply(client->getPrefix() + " INVITE " + targetNickname + " " + channelName);
 }

@@ -102,7 +102,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		if (client->isInChannel(channelName)) {
 			continue ;
 		}
-		if (channel->getPassword() != pass && !channel->getPassword().empty()) { //Проверка пароля канала
+		if (channel->getPassword() != pass && !channel->getPassword().empty()) {
 			client->reply(":server 475 " + channelName + " :Cannot join channel (+k)");
 			continue ;
 		}
