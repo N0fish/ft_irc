@@ -1,64 +1,63 @@
 #include "InviteCommand.hpp"
 /*
-INVITE command.  
+INVITE command.
 Allows inviting a user to a channel.
-Checks if the channel exists and whether the sender has permission to invite.
-If all conditions are met, the user receives an invitation and can join.
+Checks if the inviter is a member of the channel and has permission to invite.
+If all conditions are met, the target user receives an invitation.
 
 Команда INVITE.
 Позволяет пригласить пользователя в канал.
-Проверяет, существует ли канал и имеет ли отправитель право приглашать.
-Если всё в порядке, пользователь получает приглашение и может присоединиться.
+Проверяет, является ли отправитель участником канала, имеет ли право приглашать.
+Если всё в порядке, приглашение отправляется.
 */
 InviteCommand::InviteCommand(Server* server) : Command(server) {}
 
 void InviteCommand::execute(Client* client, const std::vector<std::string>& args) {
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 	if (args.size() < 2) {
-		client->reply(":server 461 INVITE :Not enough parameters");
+		client->reply(ERR_NEEDMOREPARAMS(host, nick, "INVITE"));
 		return ;
 	}
 
 	std::string	targetNickname = args[0];
 	std::string	channelName = args[1];
-
 	if (targetNickname == client->getNickname()) {
-		client->reply(":server 481 " + targetNickname + " :You can't invite yourself");
+		client->reply(ERR_CHANOPRIVSNEEDED(host, nick, channelName));
 		return ;
 	}
 
 	Channel*	channel = _server->getChannel(channelName);
-	if (!channel) {
-		client->reply(":server 403 " + channelName + " :No such channel");
-		return ;
+	Client*		targetClient = _server->findClientByNickname(targetNickname);
+	if (channel) {
+		if (channelName[0] == '+') {
+			client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
+			return ;
+		}
+		if (!channel->getClients().count(client)) {
+			client->reply(ERR_NOTONCHANNEL(host, nick, channelName));
+			return ;
+		}
+		if (channel->isInviteOnly() && !channel->isOperator(client)) {
+			client->reply(ERR_CHANOPRIVSNEEDED(host, nick, channelName));
+			return ;
+		}
 	}
-	if (channelName[0] == '+') {
-		client->reply(":server 403 " + channelName + " :Cannot invite to local channels");
-		return ;
-	}
-	if (!channel->getClients().count(client)) {
-		client->reply(":server 442 " + channelName + " :You're not on that channel");
-		return ;
-	}
-	if (channel->isInviteOnly() && !channel->isOperator(client)) {
-		client->reply(":server 482 " + channelName + " :You're not channel operator");
-		return ;
-	}
-
-	Client*	targetClient = _server->findClientByNickname(targetNickname);
 	if (!targetClient) {
-		client->reply(":server 401 " + targetNickname + " :No such nick");
+		client->reply(ERR_NOSUCHNICK(host, nick, targetNickname));
 		return ;
 	}
-	if (channel->isClientInChannel(targetClient)) {
-		client->reply(":server 443 " + targetNickname + " " + channelName + " :is already on channel");
+	if (channel && channel->isClientInChannel(targetClient)) {
+		client->reply(ERR_USERONCHANNEL(host, nick, targetNickname, channelName));
 		return ;
 	}
-	if (channel->isInvited(targetClient)) {
-		client->reply(":server 443 " + targetNickname + " " + channelName + " :User already invited");
+	if (channel && channel->isInvited(targetClient)) {
+		client->reply(ERR_USERONCHANNEL(host, nick, targetNickname, channelName));
 		return ;
 	}
-
-	channel->addInvite(targetClient);
-	client->reply(":server 341 " + client->getNickname() + " " + targetNickname + " " + channelName);
-	targetClient->reply(client->getPrefix() + " INVITE " + targetNickname + " " + channelName);
+	if (channel) {
+		channel->addInvite(targetClient);
+	}
+	client->reply(RPL_INVITING(host, nick, targetNickname, channelName));
+	targetClient->reply(RPL_INVITE(client->getPrefix(), targetNickname, channelName));
 }

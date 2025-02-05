@@ -20,6 +20,15 @@ Also sends messages about the join event and channel information (topic, user li
 После успешного входа, если канал имел режим "только по приглашению" (+i),
 приглашение клиента удаляется из списка приглашённых.
 Также отправляются сообщения о присоединении и информация о канале (тема, список пользователей).
+
+Существуют разные типы каналов:
+- `#` (глобальный) – виден по всей сети серверов.
+- `&` (локальный) – виден только на текущем сервере.
+- `+` (временный локальный) – исчезает, когда последний участник покидает канал.
+- `!` (уникальный глобальный) – должен иметь уникальное имя.
+
+Если канал не может быть создан из-за ограничений сервера,
+клиент получает `403 ERR_CANNOTCREATE`, а не `403 ERR_NOSUCHCHANNEL`.
 */
 JoinCommand::JoinCommand(Server* server) : Command(server) {}
 
@@ -102,9 +111,13 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		Channel*	channel = _server->getChannel(channelName);
 		bool		isNewChannel = false;
 		if (!channel) {
+			if (prefix == '+') {
+				client->reply(":server 403 " + channelName + " :Cannot create local channel manually");
+				continue ;
+			}
 			channel = _server->createChannel(channelName, pass, client);
 			if (!channel) {
-				client->reply(":server 403 " + channelName + " :Could not create channel");
+				client->reply(":server 403 " + channelName + " :No such channel or cannot create");
 				continue ;
 			}
 			isNewChannel = true;

@@ -72,7 +72,7 @@ uint16_t	Client::getPort() const {
 }
 
 std::string	Client::getPrefix() const {
-	return (":" + nickname + "!" + username + "@server");
+	return (nickname + "!" + username + "@server");
 }
 
 bool	Client::isNicknameSet() const {

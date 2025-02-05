@@ -1,17 +1,17 @@
 #include "KickCommand.hpp"
 /*
 KICK command.
-Allows a channel operator to remove a user from a channel.
+Allows a channel operator to remove one or multiple users from a channel.
 Checks if the channel exists, if the client is an operator,
-and if the target user is actually in the channel.
-If the target user is an operator, they are first removed from the operator list.
+and if the target users are actually in the channel.
+If a target user is an operator, they are first removed from the operator list.
 A kick message is broadcasted to the channel.
 If the channel becomes empty after the kick, it is deleted.
 
 Команда KICK.
-Позволяет оператору канала удалить пользователя из канала.
+Позволяет оператору канала удалить одного или нескольких пользователей из канала.
 Проверяет, существует ли канал, является ли клиент оператором,
-и находится ли целевой пользователь в канале.
+и находятся ли целевые пользователи в канале.
 Если целевой пользователь был оператором, он сначала удаляется из списка операторов.
 Сообщение о кике рассылается всем участникам канала.
 Если после кика канал остаётся пустым, он удаляется.
@@ -31,10 +31,10 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 		reason = "Kicked";
 	}
 
-	if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos) {
-		client->reply(":server 476 " + channelName + " :Invalid channel name");
-		return ;
-	}
+	// if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos) {
+	// 	client->reply(":server 476 " + channelName + " :Invalid channel name");
+	// 	return ;
+	// }
 
 	Channel* channel = _server->getChannel(channelName);
 	if (!channel) {
@@ -53,19 +53,16 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 	for (size_t i = 0; i < targetNicks.size(); i++) {
 		std::string	targetNick = targetNicks[i];
 		Client*		targetClient = _server->findClientByNickname(targetNick);
-
 		if (!targetClient || !channel->getClients().count(targetClient)) {
 			client->reply(":server 441 " + targetNick + " " + channelName + " :They aren't on that channel");
 			continue ;
 		}
-
 		if (channel->isOperator(targetClient)) {
 			channel->removeOperator(targetClient);
 		}
 
 		std::string kickMsg = client->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
 		channel->broadcast(kickMsg, NULL);
-
 		channel->removeClient(targetClient);
 		targetClient->leaveChannel(channel->getName());
 	}
