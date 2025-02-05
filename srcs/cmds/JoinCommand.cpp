@@ -3,49 +3,36 @@
 /*
 JOIN command.
 Allows a client to join one or multiple channels.
-Checks if the channel exists, if the correct password is provided (if required),
-whether the client is banned, has an invitation (if the channel is invite-only),
-and whether the channel user limit is exceeded.
 If the channel does not exist, a new one is created, and the first participant becomes an operator.
-After a successful join, if the channel had an invite-only mode (+i),
-the client’s invitation is removed from the invite list.
-Also sends messages about the join event and channel information (topic, user list).
+The command also supports a special argument `"0"`,
+which makes the user leave all currently joined channels.
+Access restrictions:
+- If the channel requires a key (+k) and an incorrect key is provided, the user is rejected (ERR_BADCHANNELKEY).
+- If the channel is invite-only (+i) and the user is not invited, they are rejected (ERR_INVITEONLYCHAN).
+- If the user is banned (+b), they are rejected (ERR_BANNEDFROMCHAN).
+- If the channel has reached its user limit (+l), the user is rejected (ERR_CHANNELISFULL).
 
 Команда JOIN.
 Позволяет клиенту присоединиться к одному или нескольким каналам.
-Проверяет, существует ли канал, введён ли правильный пароль (если требуется),
-не заблокирован ли клиент, есть ли у него приглашение (если канал invite-only),
-а также не превышен ли лимит пользователей в канале.
 Если канал не существует, создаётся новый, и первый участник становится оператором.
-После успешного входа, если канал имел режим "только по приглашению" (+i),
-приглашение клиента удаляется из списка приглашённых.
-Также отправляются сообщения о присоединении и информация о канале (тема, список пользователей).
-
-Существуют разные типы каналов:
-- `#` (глобальный) – виден по всей сети серверов.
-- `&` (локальный) – виден только на текущем сервере.
-- `+` (временный локальный) – исчезает, когда последний участник покидает канал.
-- `!` (уникальный глобальный) – должен иметь уникальное имя.
-
-Если канал не может быть создан из-за ограничений сервера,
-клиент получает `403 ERR_CANNOTCREATE`, а не `403 ERR_NOSUCHCHANNEL`.
+Команда также поддерживает специальный аргумент `"0"`,
+который заставляет пользователя покинуть все текущие каналы.
+Ограничения доступа:
+- Если канал требует ключ (+k) и передан неверный ключ, пользователь отклоняется (ERR_BADCHANNELKEY).
+- Если канал работает в режиме "только по приглашению" (+i) и пользователь не приглашён, он отклоняется (ERR_INVITEONLYCHAN).
+- Если пользователь заблокирован (+b), он отклоняется (ERR_BANNEDFROMCHAN).
+- Если канал достиг предела пользователей (+l), вход отклоняется (ERR_CHANNELISFULL).
 */
 JoinCommand::JoinCommand(Server* server) : Command(server) {}
 
 void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) {
-	if (args.empty()) {
-		client->reply(":server 461 JOIN :Not enough parameters");
-		return ;
-	}
-	if (args.size() > 2) {
-		client->reply(":server 461 JOIN :Too many parameters");
-		return ;
-	}
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 
-	// if (args[0].find(", ") != std::string::npos) {
-	// 	client->reply(":server 461 JOIN :Invalid format, do not use spaces after commas");
-	// 	return ;
-	// }
+	if (args.empty()) {
+		client->reply(ERR_NEEDMOREPARAMS(host, nick, "JOIN"));
+		return ;
+	}
 
 	std::vector<std::string>	channels = split(args[0], ',');
 	std::vector<std::string>	keys;
@@ -77,34 +64,34 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 		char	prefix = channelName[0];
 		if (channelName.empty() || std::string("#&+!").find(prefix) == std::string::npos || channelName.size() > 50) {
-			client->reply(":server 476 " + channelName + " :Invalid channel name");
+			client->reply(ERR_BADCHANMASK(host, nick, channelName));
 			continue ;
 		}
 		std::string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
 		if (channelName.find_first_not_of(allowedChars, 1) != std::string::npos) {
-			client->reply(":server 476 " + channelName + " :Invalid channel name");
+			client->reply(ERR_BADCHANMASK(host, nick, channelName));
 			continue ;
 		}
 
 		if (channelName.find(' ') != std::string::npos || channelName.find(',') != std::string::npos ||
 			channelName.find('\x07') != std::string::npos) { 
-			client->reply(":server 476 " + channelName + " :Invalid channel name");
+			client->reply(ERR_BADCHANMASK(host, nick, channelName));
 			continue ;
 		}
 
 		if (prefix == '+' && _server->getChannel(channelName)) {
-			client->reply(":server 403 " + channelName + " :Cannot create local channel with duplicate name");
+			client->reply(ERR_DUPLICATELOCALCHANNEL(host, nick, channelName));
 			continue ;
 		}
 
 		if (channelName[0] == '!' && _server->isChannelNameTaken(channelName)) {
-			client->reply(":server 476 " + channelName + " :Channel name must be unique");
+			client->reply(ERR_CHANNELNAMENOTUNIQUE(host, nick, channelName));
 			continue ;
 		}
 
 		const int	MAXCHANNELS = 10;
 		if (client->getChannels().size() >= MAXCHANNELS) {
-			client->reply(":server 405 " + channelName + " :You have joined too many channels");
+			client->reply(ERR_TOOMANYCHANNELS(host, nick, channelName));
 			continue ;
 		}
 
@@ -112,12 +99,12 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		bool		isNewChannel = false;
 		if (!channel) {
 			if (prefix == '+') {
-				client->reply(":server 403 " + channelName + " :Cannot create local channel manually");
+				client->reply(ERR_CANNOTCREATECHANNEL(host, nick, channelName));
 				continue ;
 			}
 			channel = _server->createChannel(channelName, pass, client);
 			if (!channel) {
-				client->reply(":server 403 " + channelName + " :No such channel or cannot create");
+				client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
 				continue ;
 			}
 			isNewChannel = true;
@@ -127,19 +114,19 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 			continue ;
 		}
 		if (channel->getPassword() != pass && !channel->getPassword().empty()) {
-			client->reply(":server 475 " + channelName + " :Cannot join channel (+k)");
+			client->reply(ERR_BADCHANNELKEY(host, nick, channelName));
 			continue ;
 		}
 		if (channel->isBanned(client)) {
-			client->reply(":server 474 " + channelName + " :Cannot join channel (+b)");
+			client->reply(ERR_BANNEDFROMCHAN(host, nick, channelName));
 			continue ;
 		}
 		if (channel->isInviteOnly() && !channel->isInvited(client)) {
-			client->reply(":server 473 " + channelName + " :Cannot join channel (+i)");
+			client->reply(ERR_INVITEONLYCHAN(host, nick, channelName));
 			continue ;
 		}
 		if (channel->getLimit() > 0 && channel->getUserCount() >= channel->getLimit()) {
-			client->reply(":server 471 " + channelName + " :Channel is full");
+			client->reply(ERR_CHANNELISFULL(host, nick, channelName));
 			continue ;
 		}
 
@@ -155,7 +142,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		channel->broadcast(joinMsg, NULL);
 
 		if (!channel->getTopic().empty()) {
-			client->reply(":server 332 " + client->getNickname() + " " + channelName + " :" + channel->getTopic());
+			client->reply(RPL_TOPIC(host, nick, channelName, channel->getTopic()));
 		}
 		std::vector<std::string>	channels(1, channelName);
 		(NamesCommand (_server)).execute(client, channels);

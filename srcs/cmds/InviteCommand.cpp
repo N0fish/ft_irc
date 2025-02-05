@@ -31,7 +31,7 @@ void InviteCommand::execute(Client* client, const std::vector<std::string>& args
 	Client*		targetClient = _server->findClientByNickname(targetNickname);
 	if (channel) {
 		if (channelName[0] == '+') {
-			client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
+			client->reply(ERR_NOSUCHCHANNELL(host, nick, channelName));
 			return ;
 		}
 		if (!channel->getClients().count(client)) {
