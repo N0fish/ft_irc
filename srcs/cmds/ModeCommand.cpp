@@ -1,51 +1,64 @@
 #include "ModeCommand.hpp"
+/*
+MODE command.
+Handles viewing and modifying channel modes according.
+Supports operator management (+o), invite-only (+i), topic restriction (+t),
+password (+k), user limit (+l).
 
+Команда MODE.
+Обрабатывает просмотр и изменение режимов канала.
+Поддерживает оператора (+o), доступ по приглашению (+i), ограничение темы (+t),
+пароль (+k), лимит пользователей (+l).
+*/
 ModeCommand::ModeCommand(Server* server) : Command(server) {}
 
-void	ModeCommand::execute(Client* client, const std::vector<std::string>& args) {
+void ModeCommand::execute(Client* client, const std::vector<std::string>& args) {
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 	if (args.size() < 2) {
-		client->reply(":server 461 MODE :Not enough parameters");
+		client->reply(ERR_NEEDMOREPARAMS(host, nick, "MODE"));
 		return ;
 	}
 
 	std::string	channelName = args[0];
 	if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos) {
-		client->reply(":server 403 " + channelName + " :No such channel");
-		return ;
-	}
-	if (channelName.find(',') != std::string::npos) {
-		client->reply(":server 461 MODE :Not enough parameters");
+		client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
 		return ;
 	}
 
 	Channel*	channel = _server->getChannel(channelName);
 	if (!channel) {
-		client->reply(":server 403 " + channelName + " :No such channel");
+		client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
 		return ;
 	}
-
 	if (args.size() == 1) {
-		std::string	modes = "+";
+		std::string modes = "+";
 		if (channel->isInviteOnly()) modes += "i";
 		if (channel->isTopicRestricted()) modes += "t";
 		if (!channel->getPassword().empty()) modes += "k";
 		if (channel->getLimit() > 0) modes += "l";
-
-		client->reply(":server 324 " + client->getNickname() + " " + channelName + " " + modes);
+		client->reply(RPL_CHANNELMODEIS(host, nick, channelName, modes));
 		return ;
 	}
-
 	if (!channel->isOperator(client)) {
-		client->reply(":server 482 " + channelName + " :You're not channel operator");
+		client->reply(ERR_CHANOPRIVSNEEDED(host, nick, channelName));
 		return ;
 	}
 
-	std::string	modeString = args[1];
+	std::string modeString = args[1];
+	for (size_t i = 0; i < modeString.size(); ++i) {
+		if ((modeString[i] == '+' || modeString[i] == '-')
+			&& (i + 1 >= modeString.size() || isspace(modeString[i + 1]))) {
+			client->reply(ERR_UNKNOWNMODE(host, nick, std::string(1, modeString[i])));
+			return ;
+		}
+	}
+
 	bool		adding = true;
 	size_t		argIndex = 2;
-
-	std::string	broadcastMsg = ":" + client->getPrefix() + " MODE " + channelName + " ";  
-	std::string	appliedModes; 
+	int			parameterizedCount = 0;
+	std::string	appliedModes;
+	std::string	appliedParams;
 
 	for (size_t i = 0; i < modeString.size(); ++i) {
 		char	mode = modeString[i];
@@ -56,74 +69,76 @@ void	ModeCommand::execute(Client* client, const std::vector<std::string>& args) 
 		} else if (mode == '-') {
 			adding = false;
 			appliedModes += "-";
-		} else if (mode == 'o') { // Назначение оператора
-			if (argIndex >= args.size()) {
-				client->reply(":server 461 MODE :Not enough parameters");
+		} else if (mode == 'o' || mode == 'k' || mode == 'l') {
+			if (argIndex >= args.size() || parameterizedCount >= 3) {
+				client->reply(ERR_NEEDMOREPARAMS(host, nick, "MODE"));
 				return ;
 			}
-			Client* target = _server->findClientByNickname(args[argIndex++]);
-			if (!target || !channel->getClients().count(target)) {
-				client->reply(":server 441 " + args[argIndex - 1] + " " + channelName + " :They aren't on that channel");
-				return ;
+
+			if (mode == 'o') {
+				Client* target = _server->findClientByNickname(args[argIndex]);
+				if (!target || !channel->getClients().count(target)) {
+					client->reply(ERR_USERNOTINCHANNEL(host, nick, args[argIndex], channelName));
+					return ;
+				}
+				if (adding) {
+					channel->addOperator(target);
+				} else {
+					channel->removeOperator(target);
+				}
+				appliedModes += "o";
+				appliedParams += " " + target->getNickname();
+				argIndex++;
+			} else if (mode == 'k') {
+				if (parameterizedCount > 0) {
+					client->reply(ERR_UNKNOWNMODE(host, nick, "k"));
+					return ;
+				}
+				if (adding) {
+					channel->setPassword(args[argIndex]);
+				} else {
+					channel->setPassword("");
+				}
+				appliedModes += "k";
+				appliedParams += " " + args[argIndex];
+				argIndex++;
+			} else if (mode == 'l') {
+				if (argIndex >= args.size()) {
+					client->reply(ERR_NEEDMOREPARAMS(host, nick, "MODE"));
+					return ;
+				}
+				std::string	limitStr = args[argIndex];
+				for (size_t j = 0; j < limitStr.size(); j++) {
+					if (!isdigit(limitStr[j])) {
+						client->reply(ERR_UNKNOWNMODE(host, nick, "l"));
+						return ;
+					}
+				}
+				int limit = std::atoi(limitStr.c_str());
+				if (adding) {
+					channel->setLimit(limit);
+				} else {
+					channel->setLimit(0);
+				}
+				appliedModes += "l";
+				appliedParams += " " + limitStr;
+				argIndex++;
 			}
-			if (adding) {
-				channel->addOperator(target);
-			} else {
-				channel->removeOperator(target);
-			}
-			appliedModes += "o " + target->getNickname() + " ";
-		} else if (mode == 'i') { // Режим "по приглашению"
+			parameterizedCount++;
+		} else if (mode == 'i') {
 			channel->setInviteOnly(adding);
-			appliedModes += "i ";
-			// channel->broadcast(":server 324 " + client->getNickname() + " " + channelName + (adding ? " +i" : " -i"), NULL);
-		} else if (mode == 't') { // Ограничение на изменение темы
+			appliedModes += "i";
+		} else if (mode == 't') {
 			channel->setTopicRestricted(adding);
-			appliedModes += "t ";
-			// channel->broadcast(":server 324 " + client->getNickname() + " " + channelName + (adding ? " +t" : " -t"), NULL);
-		} else if (mode == 'k') { // Пароль
-			if (adding) {
-				if (argIndex >= args.size()) {
-					client->reply(":server 461 MODE :Not enough parameters");
-					return ;
-				}
-				channel->setPassword(args[argIndex++]);
-			} else {
-				channel->setPassword("");
-			}
-			appliedModes += "k ";
-		} else if (mode == 'l') { // Лимит пользователей
-			if (adding) {
-				if (argIndex >= args.size()) {
-					client->reply(":server 461 MODE :Not enough parameters");
-					return ;
-				}
-				int limit = std::atoi(args[argIndex++].c_str());
-				channel->setLimit(limit);
-			} else {
-				channel->setLimit(0);
-			}
-			appliedModes += "l ";
-		} else if (mode == 'b') { // Бан пользователя
-			if (argIndex >= args.size()) {
-				client->reply(":server 461 MODE :Not enough parameters");
-				return ;
-			}
-			Client* target = _server->findClientByNickname(args[argIndex++]);
-			if (!target || !channel->getClients().count(target)) {
-				client->reply(":server 441 " + args[argIndex - 1] + " " + channelName + " :They aren't on that channel");
-				return ;
-			}
-			if (adding) {
-				channel->banClient(target);
-			} else {
-				channel->unbanClient(target);
-			}
-			appliedModes += "b " + target->getNickname() + " ";
+			appliedModes += "t";
 		} else {
-			client->reply(":server 501 MODE :Unknown mode flag");
+			client->reply(ERR_UNKNOWNMODE(host, nick, std::string(1, mode)));
+			return	;
 		}
 	}
+
 	if (!appliedModes.empty()) {
-		channel->broadcast(broadcastMsg + appliedModes, NULL);
+		std::string	broadcastMsg = ":" + client->getPrefix() + " MODE " + channelName + " " + appliedModes + appliedParams;
+		channel->broadcast(broadcastMsg, NULL);
 	}
 }

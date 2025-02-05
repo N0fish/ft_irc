@@ -6,11 +6,12 @@
 # define ERR_CHANOPRIVSNEEDED(host, client, channel) (":" + host + " 482 " + client + " " + channel + " :You're not channel operator")
 # define ERR_BADCHANMASK(host, client, channel) (":" + host + " 476 " + client + " " + channel + " :Invalid channel name")
 # define ERR_NOTONCHANNEL(host, client, channel) (":" + host + " 442 " + client + " " + channel + " :You're not on that channel")
+# define ERR_NOSUCHSERVER(host, client, target) (":" + host + " 402 " + client + " " + target + " :No such server")
+# define ERR_USERNOTINCHANNEL(host, client, nick, channel) (":" + host + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel")
 
 // INFO
 # define RPL_INFO(host, client, message) (":" + host + " 371 " + client + " :" + message)
 # define RPL_ENDOFINFO(host, client) (":" + host + " 374 " + client + " :End of INFO")
-# define ERR_NOSUCHSERVER(host, client, target) (":" + host + " 402 " + client + " " + target + " :No such server")
 
 // INVITE
 # define ERR_NOSUCHNICK(host, client, nickname) (":" + host + " 401 " + client + " " + nickname + " :No such nick")
@@ -37,7 +38,21 @@
 # define RPL_JOIN(user_prefix, channel) (":" + user_prefix + " JOIN " + channel)
 
 // KICK
-# define ERR_USERNOTINCHANNEL(host, client, nick, channel) (":" + host + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel")
 # define RPL_KICK(client_prefix, channel, target, reason) (":" + client_prefix + " KICK " + channel + " " + target + " :" + reason)
+
+// LIST
+# define ERR_TOOMANYMATCHES(host, client) (":" + host + " 416 " + client + " :Too many matches")
+# define RPL_LISTSTART(host, client) (":" + host + " 321 " + client + " Channel :Users  Topic")
+# define RPL_LIST(host, client, channel, users, topic) (":" + host + " 322 " + client + " " + channel + " " + users + " :" + topic)
+# define RPL_LISTEND(host, client) (":" + host + " 323 " + client + " :End of LIST")
+
+// MODE
+# define ERR_NOCHANMODES(host, client, channel) (":" + host + " 477 " + client + " " + channel + " :Channel does not support modes")
+# define ERR_UNKNOWNMODE(host, client, mode) (":" + host + " 472 " + client + " " + mode + " :Unknown mode")
+# define ERR_KEYSET(host, client, channel) (":" + host + " 467 " + client + " " + channel + " :Channel key already set")
+
+# define RPL_CHANNELMODEIS(host, client, channel, modes) (":" + host + " 324 " + client + " " + channel + " " + modes)
+# define RPL_BANLIST(host, client, channel, mask) (":" + host + " 367 " + client + " " + channel + " " + mask)
+# define RPL_ENDOFBANLIST(host, client, channel) (":" + host + " 368 " + client + " " + channel + " :End of ban list")
 
 #endif

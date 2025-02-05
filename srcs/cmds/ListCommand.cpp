@@ -15,13 +15,18 @@ The command sends a header message before the list and an end-of-list message af
 ListCommand::ListCommand(Server* server) : Command(server) {}
 
 void	ListCommand::execute(Client* client, const std::vector<std::string>& args) {
-	client->reply(":server 321 " + client->getNickname() + " Channel :Users  Topic");
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
+	client->reply(RPL_LISTSTART(host, nick));
 
 	std::map<std::string, Channel*>	channels = _server->getChannels();
 	std::set<std::string>			requestedChannels;
-
 	if (!args.empty()) {
 		std::vector<std::string>	splitArgs = split(args[0], ',');
+		if (splitArgs.size() > 10) {
+			client->reply(ERR_TOOMANYMATCHES(host, nick));
+			return ;
+		}
 		requestedChannels.insert(splitArgs.begin(), splitArgs.end());
 	}
 
@@ -39,11 +44,7 @@ void	ListCommand::execute(Client* client, const std::vector<std::string>& args) 
 			continue;
 		}
 
-		client->reply(":server 322 " + client->getNickname()
-						+ " " + channel->getName()
-						+ " " + ss.str()
-						+ " :" + topic);
+		client->reply(RPL_LIST(host, nick, channel->getName(), ss.str(), topic));
 	}
-
-	client->reply(":server 323 " + client->getNickname() + " :End of LIST");
+	client->reply(RPL_LISTEND(host, nick));
 }
