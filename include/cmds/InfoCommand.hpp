@@ -5,6 +5,11 @@
 # include "Client.hpp"
 # include "Channel.hpp"
 
+# define STRINGIFY(x) #x
+# define TOSTRING(x) STRINGIFY(x)
+# define COMPILE_DATE __DATE__
+# define COMPILE_TIME __TIME__
+
 class InfoCommand : public Command {
 	public:
 		InfoCommand(Server* server);

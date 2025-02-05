@@ -19,9 +19,10 @@ void	InfoCommand::execute(Client* client, const std::vector<std::string>& args) 
 	char		timeBuffer[80];
 	struct tm	*timeInfo = std::localtime(&creationTime);
 	
-	client->reply(":server 371 " + client->getNickname() + " :Welcome to IRC Server");
 	client->reply(":server 371 " + client->getNickname() + " :IRC Server version 1.0");
-	client->reply(":server 371 " + client->getNickname() + " :Developed by 42 students");
+	client->reply(":server 371 " + client->getNickname() + " :Compiled on " + std::string(COMPILE_DATE) + " at " + std::string(COMPILE_TIME));
+	client->reply(":server 371 " + client->getNickname() + " :Patch level: " + std::string("1.0.1"));
+	client->reply(":server 371 " + client->getNickname() + " :Running on Linux x86_64");
 
 	if (timeInfo) {
 		std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", timeInfo);
