@@ -1,11 +1,8 @@
-#ifndef USERCOMMAND_HPP
-# define USERCOMMAND_HPP
+#ifndef USER_COMMAND_HPP
+# define USER_COMMAND_HPP
 
 # include "Command.hpp"
 # include "Client.hpp"
-
-// Я реализовала команды USER и NICK через систему классов, 
-// используя абстрактный базовый класс Command, от которого наследуются конкретные команды.
 
 class UserCommand : public Command {
 	public:

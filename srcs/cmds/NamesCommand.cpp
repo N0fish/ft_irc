@@ -1,5 +1,4 @@
 #include "NamesCommand.hpp"
-#include "Channel.hpp"
 
 NamesCommand::NamesCommand(Server* server) : Command(server) {}
 

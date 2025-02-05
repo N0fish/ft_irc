@@ -243,16 +243,6 @@ void	Server::disconnectClient(Client* client) {
 				<< std::endl;
 }
 
-
-bool	Server::isNicknameTaken(const std::string& nickname) const {
-	for (size_t i = 0; i < clientObjects.size(); ++i) {
-		if (clientObjects[i]->getNickname() == nickname) {
-			return (true);
-		}
-	}
-	return (false);
-}
-
 // сервер обрабатывает команды, которые вводит клиент
 void	Server::handleCommand(Client* client, const std::string& command) {
 	if (command.empty())
@@ -310,6 +300,22 @@ void	Server::run() {
 			}
 		}
 	}
+}
+
+void	Server::removeNickname(const std::string& nickname) {
+	if (!nickname.empty()) {
+		usedNicknames.erase(nickname);
+	}
+}
+
+void	Server::addNickname(const std::string& nickname) {
+	if (!nickname.empty()) {
+		usedNicknames.insert(nickname);
+	}
+}
+
+bool	Server::isNicknameTaken(const std::string& nickname) const {
+	return (usedNicknames.find(nickname) != usedNicknames.end());
 }
 
 const std::map<std::string, Channel*>&	Server::getChannels() const {
@@ -397,13 +403,14 @@ time_t	Server::getCreationTime() const {
     return (creationTime);
 }
 
-std::string Server::getVersion() const {
-    return "IRC Server v1.0";
+std::string	Server::getVersion() const {
+    return ("IRC Server v1.0");
 }
 
-std::string Server::getOSInfo() const {
-    return "Running on Linux";
+std::string	Server::getOSInfo() const {
+    return ("Running on Linux");
 }
+
 std::string Server::getUptime() const {
 	time_t currentTime = time(NULL);
 	time_t uptime = currentTime - creationTime;
@@ -415,4 +422,13 @@ std::string Server::getUptime() const {
 	snprintf(uptimeStr, sizeof(uptimeStr), "%d days, %d hours, %d minutes", days, hours, minutes);
 
 	return (std::string(uptimeStr));
+}
+
+void	Server::broadcast(const std::string& message, Client* sender) {
+	for (size_t i = 0; i < clientObjects.size(); i++) {
+		Client* target = clientObjects[i];
+		if (target != sender) { // Отправляем всем, кроме отправителя
+			target->reply(message);
+		}
+	}
 }

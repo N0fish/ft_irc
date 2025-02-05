@@ -3,16 +3,15 @@
 WhoisCommand::WhoisCommand(Server* server) : Command(server) {}
 
 void WhoisCommand::execute(Client* client, const std::vector<std::string>& args) {
-    if (args.empty()) {
-        client->reply(":" + _server->getHostname() + " 431 :No nickname given");
-        return;
-    }
+	if (args.empty()) {
+		return ;
+	}
 
     std::string targetNick = args[0];
-    Client* target = _server->findClientByNickname(args[0]);
+    Client* target = _server->findClientByNickname(targetNick);
     if (!target) {
         client->reply(":" + _server->getHostname() + " 401 " + targetNick + " :No such nick");
-        return;
+        return ;
     }
 
     //  Основная информация о пользователе (RPL_WHOISUSER - 311)
@@ -22,38 +21,57 @@ void WhoisCommand::execute(Client* client, const std::vector<std::string>& args)
     client->reply(whoisInfo);
 
     //  Информация о сервере пользователя (RPL_WHOISSERVER - 312)
-    std::string whoisServer = ":" + _server->getHostname() + " 312 " + client->getNickname() +
-                              " " + target->getNickname() + " server_name :Server description";
-    client->reply(whoisServer);
+    // std::string whoisServer = ":" + _server->getHostname() + " 312 " + client->getNickname() +
+    //                           " " + target->getNickname() + " server_name :Server description";
+    // client->reply(whoisServer);
+	std::string whoisServer = ":" + _server->getHostname() + " 312 " + client->getNickname() +
+							" " + target->getNickname() + " " + _server->getHostname() +
+							" :42IRC Server";
+	client->reply(whoisServer);
 
     //  Список каналов пользователя (RPL_WHOISCHANNELS - 319)
 // Проверяем, состоит ли пользователь в каналах перед отправкой 319
-if (!target->getChannels().empty()) {
-    std::string whoisChannels = ":" + _server->getHostname() + " 319 " + client->getNickname() +
-                                " " + target->getNickname() + " :";
+	if (!target->getChannels().empty()) {
+		std::string	whoisChannels = ":" + _server->getHostname() + " 319 " + client->getNickname() +
+									" " + target->getNickname() + " :";
 
-    const std::vector<std::string>& channels = target->getChannels();
-    std::vector<std::string>::const_iterator it = channels.begin();
+		const std::vector<std::string>&				channels = target->getChannels();
+		// std::vector<std::string>::const_iterator	it = channels.begin();
 
-    while (it != channels.end()) {
-        if (it != channels.begin()) {
-            whoisChannels += " ";
-        }
-        whoisChannels += *it;
-        ++it;
-    }
-    
-    client->reply(whoisChannels);
-}
+		// while (it != channels.end()) {
+		//     if (it != channels.begin()) {
+		//         whoisChannels += " ";
+		//     }
+		//     whoisChannels += *it;
+		//     ++it;
+		// }
+		for (size_t i = 0; i < channels.size(); ++i) {
+			std::string prefix = "";
+			Channel* channel = _server->getChannel(channels[i]);
+			if (channel && channel->isOperator(target)) {
+				prefix = "@";
+			}
+			whoisChannels += (i > 0 ? " " : "") + prefix + channels[i];
+		}
+		client->reply(whoisChannels);
+	}
 
     // Время бездействия пользователя (RPL_WHOISIDLE - 317)
-    std::ostringstream ss; // Используем std::ostringstream вместо std::to_string() для C++98
-    ss << target->getIdleTime();
-    std::string idleTimeStr = ss.str();
+    // std::ostringstream ss; // Используем std::ostringstream вместо std::to_string() для C++98
+    // ss << target->getIdleTime();
+    // std::string idleTimeStr = ss.str();
+
+    // std::string whoisIdle = ":" + _server->getHostname() + " 317 " + client->getNickname() +
+    //                         " " + target->getNickname() + " " + idleTimeStr +
+    //                         " :seconds idle";
+    // client->reply(whoisIdle);
+	 // Время бездействия пользователя (RPL_WHOISIDLE - 317)
+    std::ostringstream	idleTime;
+    idleTime << target->getIdleTime();
 
     std::string whoisIdle = ":" + _server->getHostname() + " 317 " + client->getNickname() +
-                            " " + target->getNickname() + " " + idleTimeStr +
-                            " :seconds idle";
+                            " " + target->getNickname() + " " + idleTime.str() +
+                            " " + target->getFormattedSignonTime() + " :seconds idle, signon time";
     client->reply(whoisIdle);
 
     //  Завершение WHOIS (RPL_ENDOFWHOIS - 318)

@@ -19,10 +19,10 @@
 # include <algorithm>
 # include <csignal>
 # include <cstdlib>
-#include  <cstdio> 
-#include <ctime>
+# include <cstdio> 
+# include <ctime>
 
-std::vector<std::string> split(const std::string &str, char delimiter);
-std::string joinArgs(const std::vector<std::string> &args, size_t startIndex);
+std::vector<std::string>	split(const std::string &str, char delimiter);
+std::string					joinArgs(const std::vector<std::string> &args, size_t startIndex);
 
 #endif

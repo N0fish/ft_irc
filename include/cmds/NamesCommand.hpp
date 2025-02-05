@@ -3,6 +3,7 @@
 
 # include "Command.hpp"
 # include "Client.hpp"
+# include "Channel.hpp"
 
 class NamesCommand : public Command {
 	public:

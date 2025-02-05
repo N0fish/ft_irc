@@ -1,8 +1,26 @@
 #include "JoinCommand.hpp"
 #include "NamesCommand.hpp"
-#include "libraries.hpp"
+/*
+JOIN command.
+Allows a client to join one or multiple channels.
+Checks if the channel exists, if the correct password is provided (if required),
+whether the client is banned, has an invitation (if the channel is invite-only),
+and whether the channel user limit is exceeded.
+If the channel does not exist, a new one is created, and the first participant becomes an operator.
+After a successful join, if the channel had an invite-only mode (+i),
+the client’s invitation is removed from the invite list.
+Also sends messages about the join event and channel information (topic, user list).
 
-// Конструктор команды JOIN
+Команда JOIN.
+Позволяет клиенту присоединиться к одному или нескольким каналам.
+Проверяет, существует ли канал, введён ли правильный пароль (если требуется),
+не заблокирован ли клиент, есть ли у него приглашение (если канал invite-only),
+а также не превышен ли лимит пользователей в канале.
+Если канал не существует, создаётся новый, и первый участник становится оператором.
+После успешного входа, если канал имел режим "только по приглашению" (+i),
+приглашение клиента удаляется из списка приглашённых.
+Также отправляются сообщения о присоединении и информация о канале (тема, список пользователей).
+*/
 JoinCommand::JoinCommand(Server* server) : Command(server) {}
 
 void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) {
@@ -10,16 +28,29 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		client->reply(":server 461 JOIN :Not enough parameters");
 		return ;
 	}
+	if (args.size() > 2) {
+		client->reply(":server 461 JOIN :Too many parameters");
+		return ;
+	}
 
-	std::vector<std::string> channels = split(args[0], ',');
+	if (args[0].find(", ") != std::string::npos) {
+		client->reply(":server 461 JOIN :Invalid format, do not use spaces after commas");
+		return ;
+	}
+
+	std::vector<std::string>	channels = split(args[0], ',');
+	std::vector<std::string>	keys;
+	if (args.size() > 1) {
+		keys = split(args[1], ',');
+	}
+
 	for (size_t i = 0; i < channels.size(); i++) {
 		std::string	channelName = channels[i];
-		std::string	pass = args.size() > 1 ? args[1] : "";
 
-		// JOIN 0 – клиент выходит из всех каналов
 		if (channelName == "0") {
-			for (size_t i = 0; i < client->getChannels().size(); i++) {
-				Channel* channel = _server->getChannel(client->getChannels()[i]);
+			while (!client->getChannels().empty()) {
+				std::string	currentChannelName = client->getChannels().back();
+				Channel*	channel = _server->getChannel(currentChannelName);
 				if (channel) {
 					channel->removeClient(client);
 					channel->broadcast(client->getPrefix() + " PART " + channel->getName(), NULL);
@@ -30,114 +61,79 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 					}
 				}
 			}
-			return ;
+			continue ;
 		}
 
-		if (channelName.empty() || channelName[0] != '#' || channelName.size() > 50) {
+		std::string	pass = (i < keys.size()) ? keys[i] : "";
+
+		if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos || channelName.size() > 50) {
 			client->reply(":server 476 " + channelName + " :Invalid channel name");
-			return ;
+			continue ;
 		}
-
-		if (channelName.find_first_not_of('#') == std::string::npos) {
+		std::string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+		if (channelName.find_first_not_of(allowedChars, 1) != std::string::npos) {
 			client->reply(":server 476 " + channelName + " :Invalid channel name");
-			return ;
+			continue ;
 		}
 
-		if (channelName.find(' ') != std::string::npos || channelName.find(',') != std::string::npos) {
+		if (channelName.find(' ') != std::string::npos || channelName.find(',') != std::string::npos ||
+			channelName.find('\x07') != std::string::npos) { 
 			client->reply(":server 476 " + channelName + " :Invalid channel name");
-			return ;
+			continue ;
 		}
 
-		// Проверка на лимит каналов
-		const int MAXCHANNELS = 10; // IRC-серверы обычно ограничивают число каналов на клиента
+		const int	MAXCHANNELS = 10;
 		if (client->getChannels().size() >= MAXCHANNELS) {
 			client->reply(":server 405 " + channelName + " :You have joined too many channels");
-			return ;
+			continue ;
 		}
 
-		Channel* channel = _server->getChannel(channelName);
-		bool isNewChannel = false;
+		Channel*	channel = _server->getChannel(channelName);
+		bool		isNewChannel = false;
 		if (!channel) {
-			// Если канал не существует, создаём его
 			channel = _server->createChannel(channelName, pass, client);
 			if (!channel) {
 				client->reply(":server 403 " + channelName + " :Could not create channel");
-				return ;
+				continue ;
 			}
 			isNewChannel = true;
 		}
 
 		if (client->isInChannel(channelName)) {
-			return ; // Если уже в канале- выходим
+			continue ;
 		}
-
 		if (channel->getPassword() != pass && !channel->getPassword().empty()) { //Проверка пароля канала
 			client->reply(":server 475 " + channelName + " :Cannot join channel (+k)");
-			return ;
+			continue ;
 		}
-
-		// Проверка, если клиент в бан-листе `+b`
 		if (channel->isBanned(client)) {
 			client->reply(":server 474 " + channelName + " :Cannot join channel (+b)");
-			return ;
+			continue ;
 		}
-
-		// Проверка, если канал имеет `+i` (инвайт-онли)
 		if (channel->isInviteOnly() && !channel->isInvited(client)) {
 			client->reply(":server 473 " + channelName + " :Cannot join channel (+i)");
-			return ;
+			continue ;
 		}
-
-		// // Если клиент был приглашён, удаляем его из списка приглашённых
-		// channel->removeInvite(client);
-
-		// Проверка лимита пользователей в канале
 		if (channel->getLimit() > 0 && channel->getUserCount() >= channel->getLimit()) {
 			client->reply(":server 471 " + channelName + " :Channel is full");
-			return;
+			continue ;
 		}
 
-		channel->addClient(client); //Добавляем клиента в канал
+		channel->addClient(client);
 		client->joinChannel(channelName);
+		channel->removeInvite(client);
 
 		if (isNewChannel) {
-			channel->addOperator(client);  // Делаем первого участника оператором
+			channel->addOperator(client);
 		}
 
-		// Сообщаем о входе
-		std::string joinMsg = client->getPrefix() + " JOIN " + channelName;
+		std::string	joinMsg = client->getPrefix() + " JOIN " + channelName;
 		channel->broadcast(joinMsg, NULL);
 
-		// Отправляем информацию о канале (Topic, User List)
 		if (!channel->getTopic().empty()) {
 			client->reply(":server 332 " + client->getNickname() + " " + channelName + " :" + channel->getTopic());
 		}
-		std::vector<std::string> channels(1, channelName);
+		std::vector<std::string>	channels(1, channelName);
 		(NamesCommand (_server)).execute(client, channels);
 	}
 }
-
-// void JoinCommand::execute(Client* client, const std::vector<std::string>& args) {
-//     // Перенаправляем вызов на handleJOIN в Server
-//     server->handleJOIN(client, args);
-// }
-
-// void Server::handleJOIN(Client* client, const std::vector<std::string>& args) {
-//     if (args.empty()) {
-//         send(client->getFd(), ":server 461 JOIN :Not enough parameters\r\n", 43, 0);
-//         return;
-//     }
-
-//     const std::string& channelName = args[0];
-
-//     if (channels.find(channelName) == channels.end()) {
-//         channels[channelName] = new Channel(channelName); // Создаем канал без пароля
-//     }
-
-//     Channel* channel = channels[channelName];
-//     channel->addClient(client);
-//     client->joinChannel(channelName);
-
-//     std::string successMsg = ":" + client->getNickname() + " JOIN :" + channelName + "\r\n";
-//     send(client->getFd(), successMsg.c_str(), successMsg.size(), 0);
-// }

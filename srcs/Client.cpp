@@ -4,10 +4,9 @@
 Client::Client(int fd, std::string ip, uint16_t port) :	fd(fd), ip(ip), port(port),
 							state(UNAUTHENTICATED),
 							nicknameSet(false),
-							usernameSet(false) {
-	// std::cout	<< "Client created: FD=" << fd 
-	// 			<< ", IP=" << ip 
-	// 			<< ", Port=" << port << std::endl;
+							usernameSet(false),
+							lastActivity(time(NULL)),
+							signonTime(time(NULL)) {
 }
 
 Client::~Client() {
@@ -131,6 +130,7 @@ std::string	Client::getUserSymbol() const {
 }
 
 void		Client::registerAction(Server *server) {
+	(void)server;
 	setState(REGISTERED);
 	reply(":server 001 " + getNickname() + " :Welcome to the IRC network "+ getNickname() + "!!!");
 	// client->reply(":" + _server->getHostname() + " 001 " + client->getNickname() +
@@ -148,9 +148,9 @@ void		Client::registerAction(Server *server) {
 	// client->reply(":" + _server->getHostname() + " 004 " + client->getNickname() +
 	// 			" " + _server->getHostname() + " 1.0 o i k l b t");
 	reply("PING :server");
-	Command *listCmd = new ListCommand(server);
-	listCmd->execute(this, std::vector<std::string>());
-	delete listCmd;
+	// Command *listCmd = new ListCommand(server);
+	// listCmd->execute(this, std::vector<std::string>());
+	// delete listCmd;
 }
 
 std::string Client::getServer() const {
@@ -158,6 +158,28 @@ std::string Client::getServer() const {
 }
 
 // время бездействия 
-time_t Client::getIdleTime() const {
+time_t	Client::getIdleTime() const {
 	return time(NULL) - lastActivity;
+}
+
+time_t	Client::getSignonTime() const {
+    return (signonTime);
+}
+
+std::string Client::getFormattedSignonTime() const {
+	char buffer[30];
+	struct tm *timeinfo = std::localtime(&signonTime);
+	if (timeinfo) {
+		std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+		return std::string(buffer);
+	}
+	return "Unknown";
+}
+
+time_t	Client::getLastActivity() const {
+	return (lastActivity);
+}
+
+void	Client::updateActivity() {
+	lastActivity = time(NULL);
 }

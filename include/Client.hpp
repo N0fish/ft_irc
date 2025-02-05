@@ -10,85 +10,95 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-// чтобы на будущее добавить время, когда начала, и хедеры не забыть поставить везде
-
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
 # include "Server.hpp"
 
+/*
+Class representing a connected IRC server client.
+Manages client information, including nickname, username,
+authentication state, list of channels, and invitations.
+Also provides methods for sending messages and interacting with the server.
+
+Класс, представляющий подключенного клиента IRC-сервера.
+Управляет информацией о клиенте, включая его никнейм, имя пользователя,
+статус аутентификации, список каналов и приглашений.
+Также предоставляет методы для отправки сообщений и взаимодействия с сервером.
+*/
+
 enum ClientState {
-    UNAUTHENTICATED, // Клиент только подключился	----- Никакие команды, кроме PASS
-    PASS_PROVIDED, // Клиент ввел PASS				----- NICK, USER
-    REGISTERED // Клиент ввел PASS, NICK и USER		----- Все команды
-}; 
-// этот инюм нужен, чтобы был порядок вначале комант PASS NICK USER, 
-//до этого другие команды вводить нельзя
+	UNAUTHENTICATED,
+	PASS_PROVIDED,
+	REGISTERED
+};
 
 class Client {
 	private:
-		int							fd;				// Дескриптор клиента
+		int							fd;
 		std::string					ip;
 		uint16_t 					port;
-		ClientState					state;			// Новый статус клиента
-		std::string					partialMessage;	// Буфер для неполных сообщений
-		std::string					nickname;		// Никнейм клиента
-		std::string					username;		// Имя пользователя клиента
+		ClientState					state;
+		std::string					partialMessage;
+		std::string					nickname;
+		std::string					username;
 		std::string					realname;
-		bool						nicknameSet;	// Флаг установки никнейма
-		bool						usernameSet;	// Флаг установки имени пользователя
-		std::vector<std::string>	channels;		// Каналы, в которых состоит клиент
+		bool						nicknameSet;
+		bool						usernameSet;
+		std::vector<std::string>	channels;
 		std::set<std::string>		invitedChannels;
-		time_t						lastActivity; 
+		time_t						lastActivity;
+		time_t						signonTime;
 
 	public:
 		Client(int fd, std::string, uint16_t port);
 		~Client();
 
-		int			getFd() const;
-		void		reply(const std::string& message); // Использовать для отправки сообщений через send()!!!!!
+		int								getFd() const;
+		void							reply(const std::string& message);
 
-		ClientState	getState() const;
-		void		setState(ClientState newState);
+		ClientState						getState() const;
+		void							setState(ClientState newState);
 
-		std::string	getPartialMessage() const;
-		void		setPartialMessage(const std::string& message);
+		std::string						getPartialMessage() const;
+		void							setPartialMessage(const std::string& message);
 
-		std::string	getNickname() const;
-		void		setNickname(const std::string& nick);
+		std::string						getNickname() const;
+		void							setNickname(const std::string& nick);
+		std::string						getUsername() const;
+		void							setUsername(const std::string& user);
+		std::string						getRealName() const;
+		void							setRealName(const std::string& name);
 
-		std::string	getUsername() const;
-		void		setUsername(const std::string& user);
+		uint16_t						getPort() const;
+		std::string						getPrefix() const;
 
-		std::string	getRealName() const;
-		void		setRealName(const std::string& name);
+		bool							isNicknameSet() const;
+		void							setNicknameSet(bool set);
+		bool							isUsernameSet() const;
+		void							setUsernameSet(bool set);
 
-		uint16_t	getPort() const;
-		std::string	getPrefix() const; // нужен серверу, чтобы формировать сообщения,  не изменяет состояние клиента, а просто возвращает данные.
+		void							joinChannel(const std::string& channel);
+		void							leaveChannel(const std::string& channel);
+		bool							isInChannel(const std::string& channel);
 
-		bool		isNicknameSet() const;
-		void		setNicknameSet(bool set);
+		void							addInvite(const std::string& channel);
+		bool							isInvited(const std::string& channel) const;
 
-		bool		isUsernameSet() const;
-		void		setUsernameSet(bool set);
+		bool							isRegistered() const;
+		std::string						getIpAddr() const;
+		std::string						getUserSymbol() const;
 
-		void 		joinChannel(const std::string& channel); // Добавление клиента в канал
+		const std::vector<std::string>&	getChannels() const;
+		void							registerAction(Server *server);
 
-		void 		leaveChannel(const std::string& channel); // Удаление клиента из канала
-		bool 		isInChannel(const std::string& channel); // Проверка, состоит ли клиент в канале
+		std::string						getServer() const;
+		time_t							getIdleTime() const;
+		time_t							getSignonTime() const;
+		std::string						getFormattedSignonTime() const;
+		time_t							getLastActivity() const;
+		void							updateActivity();
 
-		void		addInvite(const std::string& channel);
-		bool		isInvited(const std::string& channel) const;
-
-		bool		isRegistered() const;
-		std::string	getIpAddr() const;
-		std::string	getUserSymbol() const;
-
-		const 		std::vector<std::string>&	getChannels() const; // Получение списка каналов
-		void		registerAction(Server *server);
-
-		std::string	getServer() const;
-		time_t		getIdleTime() const;
 };
 
 #endif

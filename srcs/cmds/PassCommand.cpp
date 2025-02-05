@@ -2,15 +2,6 @@
 
 PassCommand::PassCommand(Server* server) : Command(server) {}
 
-std::string ltrim(std::string s) {
-    size_t start = s.find_first_not_of(":]");
-    if (start != std::string::npos) {
-        s.erase(0, start);
-    }
-	return s;
-}
-
-// Это первое, что должен сделать клиент !!! Если нет PASS, другие команды не работают
 void	PassCommand::execute(Client* client, const std::vector<std::string>& args) {
 	if (client->getState() != UNAUTHENTICATED) {
 		client->reply(":server 462 PASS :You may not reregister");
@@ -23,12 +14,11 @@ void	PassCommand::execute(Client* client, const std::vector<std::string>& args) 
 		return ;
 	}
 
-	if (ltrim(args[0]) == _server->getPassword()) {
-		client->setState(PASS_PROVIDED);
-		client->reply(":server NOTICE * :Authentication successful");
-	}
-	else {
-		client->reply(":server 464 :Password incorrect");
+	if (args[0] != _server->getPassword()) {
+		client->reply(":server 464 PASS :Password incorrect");
 		_server->disconnectClient(client);
+		return;
 	}
+	client->setState(PASS_PROVIDED);
+	client->reply(":server NOTICE * :Authentication successful");
 }

@@ -18,13 +18,22 @@ void	PrivmsgCommand::execute(Client* client, const std::vector<std::string>& arg
 		message += args[i] + " ";
 	}
 
+	if (!message.empty()) {
+		message.pop_back();
+	}
+
 	// Убираем двоеточие в начале сообщения (если есть)
 	if (!message.empty() && message[0] == ':') {
 		message = message.substr(1);
 	}
 
+	if (message.empty()) {
+		client->reply(":server 412 PRIVMSG :No text to send");
+		return ;
+	}
+
 	// Если сообщение отправляется в канал
-	if (target[0] == '#') {
+	if (std::string("#&+!").find(target[0]) != std::string::npos) {
 		Channel* channel = _server->getChannel(target);
 		if (!channel) {
 			client->reply(":server 403 " + target + " :No such channel");
@@ -53,53 +62,3 @@ void	PrivmsgCommand::execute(Client* client, const std::vector<std::string>& arg
 		recipient->reply(msg);
 	}
 }
-
-// Реализация метода execute
-// void PrivmsgCommand::execute(Client* client, const std::vector<std::string>& args) {
-    // Перенаправляем выполнение команды на handlePRIVMSG
-    // server->handlePRIVMSG(client, args);
-// }
-
-// void Server::handlePRIVMSG(Client* client, const std::vector<std::string>& args) {
-//     if (args.size() < 2) {
-//         std::string errorMsg = ":server 461 PRIVMSG :Not enough parameters\r\n";
-//         send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-//         return;
-//     }
-
-//     const std::string& target = args[0];
-//     const std::string& message = args[1];
-
-//     if (target[0] == '#') { // Сообщение в канал
-//         // Проверяем, существует ли канал
-//         if (channels.find(target) == channels.end()) {
-//             std::string errorMsg = ":server 403 " + target + " :No such channel\r\n";
-//             send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-//             return;
-//         }
-
-//         // Получаем канал и отправляем сообщение всем клиентам
-//         Channel* channel = channels[target];
-//         std::set<Client*>::const_iterator it = channel->getClients().begin();
-//         for (; it != channel->getClients().end(); ++it) {
-//             Client* recipient = *it;
-//             if (recipient != client) {
-//                 std::string msg = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-//                 send(recipient->getFd(), msg.c_str(), msg.size(), 0);
-//             }
-//         }
-
-//     } else { // Личное сообщение
-//         // Ищем клиента по никнейму
-//         Client* recipient = findClientByNickname(target);
-//         if (!recipient) {
-//             std::string errorMsg = ":server 401 " + target + " :No such nick\r\n";
-//             send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-//             return;
-//         }
-
-//         // Отправляем личное сообщение
-//         std::string msg = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-//         send(recipient->getFd(), msg.c_str(), msg.size(), 0);
-//     }
-// }

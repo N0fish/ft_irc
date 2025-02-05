@@ -3,9 +3,7 @@
 
 # include "Command.hpp"
 # include "Client.hpp"
-
-// Я реализовала команды USER и NICK через систему классов, 
-// используя абстрактный базовый класс Command, от которого наследуются конкретные команды.
+# include "Channel.hpp"
 
 class NickCommand : public Command {
 	public:
