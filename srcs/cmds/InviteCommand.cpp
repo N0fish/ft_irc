@@ -51,5 +51,5 @@ void InviteCommand::execute(Client* client, const std::vector<std::string>& args
 
 	channel->addInvite(targetClient);
 	client->reply(":server 341 " + client->getNickname() + " " + targetNickname + " " + channelName);
-	targetClient->reply(":" + client->getNickname() + " INVITE " + targetNickname + " " + channelName);
+	targetClient->reply(client->getPrefix() + " INVITE " + targetNickname + " :" + channelName);
 }
