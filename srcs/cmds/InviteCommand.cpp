@@ -31,6 +31,10 @@ void InviteCommand::execute(Client* client, const std::vector<std::string>& args
 		client->reply(":server 403 " + channelName + " :No such channel");
 		return ;
 	}
+	if (channelName[0] == '+') {
+		client->reply(":server 403 " + channelName + " :Cannot invite to local channels");
+		return ;
+	}
 	if (!channel->getClients().count(client)) {
 		client->reply(":server 442 " + channelName + " :You're not on that channel");
 		return ;

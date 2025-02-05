@@ -328,7 +328,11 @@ const std::vector<std::string>	Server::getChannelsName() {
 	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); it++) {
 		resp.push_back(it->second->getName());
 	}
-	return resp;
+	return (resp);
+}
+
+bool	Server::isChannelNameTaken(const std::string& name) {
+	return (uniqueChannels.find(name) != uniqueChannels.end());
 }
 
 std::string	Server::getPassword() const { 
@@ -363,14 +367,25 @@ Channel*	Server::getChannel(const std::string& name) {
 }
 
 Channel*	Server::createChannel(const std::string& name, const std::string& pass, Client* creator) {
-	if (channels.find(name) == channels.end()) {
-		Channel* newChannel = new Channel(name, pass);
-		channels[name] = newChannel;
-		if (creator != NULL)
-			newChannel->addClient(creator);
-		return (newChannel);
+	if (channels.find(name) != channels.end())
+		return (channels[name]);
+	if (name[0] == '+')
+		return (NULL);
+	if (name[0] == '!' && uniqueChannels.find(name) != uniqueChannels.end())
+		return (NULL);
+
+	Channel*	newChannel = new Channel(name, pass);
+	if (!newChannel)
+		return (NULL);
+	channels[name] = newChannel;
+	if (name[0] == '!') {
+		uniqueChannels.insert(name);
 	}
-	return (NULL);
+	if (creator != NULL) {
+		newChannel->addClient(creator);
+		newChannel->addOperator(creator);
+	}
+	return (newChannel);
 }
 
 void	Server::deleteChannel(const std::string& channelName) {

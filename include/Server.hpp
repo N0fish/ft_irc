@@ -29,6 +29,7 @@ class Server {
 		std::vector<Client*>			clientObjects;
 		std::map<std::string, Command*>	commands;
 		std::map<std::string, Channel*>	channels;
+		std::set<std::string>			uniqueChannels;
 		time_t							creationTime;
 		std::set<std::string>			usedNicknames;
 
@@ -68,6 +69,7 @@ class Server {
 		Channel*								getChannel(const std::string& name);
 		const std::map<std::string, Channel*>&	getChannels() const;
 		const std::vector<std::string>			getChannelsName();
+		bool									isChannelNameTaken(const std::string& name);
 		Channel*								createChannel(const std::string& name, const std::string& pass, Client* creator);
 
 		time_t									getCreationTime() const;

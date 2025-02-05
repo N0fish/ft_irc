@@ -33,10 +33,10 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		return ;
 	}
 
-	if (args[0].find(", ") != std::string::npos) {
-		client->reply(":server 461 JOIN :Invalid format, do not use spaces after commas");
-		return ;
-	}
+	// if (args[0].find(", ") != std::string::npos) {
+	// 	client->reply(":server 461 JOIN :Invalid format, do not use spaces after commas");
+	// 	return ;
+	// }
 
 	std::vector<std::string>	channels = split(args[0], ',');
 	std::vector<std::string>	keys;
@@ -66,7 +66,8 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 
 		std::string	pass = (i < keys.size()) ? keys[i] : "";
 
-		if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos || channelName.size() > 50) {
+		char	prefix = channelName[0];
+		if (channelName.empty() || std::string("#&+!").find(prefix) == std::string::npos || channelName.size() > 50) {
 			client->reply(":server 476 " + channelName + " :Invalid channel name");
 			continue ;
 		}
@@ -79,6 +80,16 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 		if (channelName.find(' ') != std::string::npos || channelName.find(',') != std::string::npos ||
 			channelName.find('\x07') != std::string::npos) { 
 			client->reply(":server 476 " + channelName + " :Invalid channel name");
+			continue ;
+		}
+
+		if (prefix == '+' && _server->getChannel(channelName)) {
+			client->reply(":server 403 " + channelName + " :Cannot create local channel with duplicate name");
+			continue ;
+		}
+
+		if (channelName[0] == '!' && _server->isChannelNameTaken(channelName)) {
+			client->reply(":server 476 " + channelName + " :Channel name must be unique");
 			continue ;
 		}
 
