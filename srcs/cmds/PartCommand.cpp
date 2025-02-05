@@ -30,7 +30,7 @@ void	PartCommand::execute(Client* client, const std::vector<std::string>& args) 
 			continue ;
 		}
 
-		std::string	partMsg = client->getPrefix() + " PART " + channelName;
+		std::string	partMsg = ":" + client->getPrefix() + " PART " + channelName;
 		if (!reason.empty()) {
 			partMsg += " :" + reason;
 		}

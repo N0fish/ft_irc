@@ -1,52 +1,56 @@
 #include "KickCommand.hpp"
 /*
 KICK command.
-Allows a channel operator to remove one or multiple users from a channel.
-Checks if the channel exists, if the client is an operator,
-and if the target users are actually in the channel.
-If a target user is an operator, they are first removed from the operator list.
-A kick message is broadcasted to the channel.
-If the channel becomes empty after the kick, it is deleted.
+Allows a channel operator to forcibly remove users from a channel.
+The server checks:
+- If the channel exists and the client is a member.
+- If the client has operator privileges.
+- If the target users are in the channel.
+If valid, the target users are removed, a KICK message is sent,
+and if the channel becomes empty, it is deleted.
 
 Команда KICK.
-Позволяет оператору канала удалить одного или нескольких пользователей из канала.
-Проверяет, существует ли канал, является ли клиент оператором,
-и находятся ли целевые пользователи в канале.
-Если целевой пользователь был оператором, он сначала удаляется из списка операторов.
-Сообщение о кике рассылается всем участникам канала.
-Если после кика канал остаётся пустым, он удаляется.
+Позволяет оператору насильно удалить пользователей из канала.
+Сервер проверяет:
+- Существует ли канал и является ли клиент его участником.
+- Есть ли у клиента права оператора.
+- Находятся ли целевые пользователи в канале.
+Если всё верно, пользователи удаляются, отправляется сообщение KICK,
+а пустой канал удаляется.
 */
 KickCommand::KickCommand(Server* server) : Command(server) {}
 
 void	KickCommand::execute(Client* client, const std::vector<std::string>& args) {
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 	if (args.size() < 2) {
-		client->reply(":server 461 KICK :Not enough parameters");
+		client->reply(ERR_NEEDMOREPARAMS(host, nick, "KICK"));
 		return ;
 	}
 
 	std::string					channelName = args[0];
 	std::vector<std::string>	targetNicks = split(args[1], ','); 
-	std::string	reason = (args.size() > 2) ? joinArgs(args, 2) : "Kicked";
+	std::string					reason = (args.size() > 2) ? joinArgs(args, 2) : nick;
 	if (reason.empty()) {
-		reason = "Kicked";
+		reason = nick;
 	}
 
-	// if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos) {
-	// 	client->reply(":server 476 " + channelName + " :Invalid channel name");
-	// 	return ;
-	// }
+	if (channelName.empty() || std::string("#&+!").find(channelName[0]) == std::string::npos) {
+		client->reply(ERR_BADCHANMASK(host, nick, channelName));
+		return ;
+	}
 
 	Channel* channel = _server->getChannel(channelName);
 	if (!channel) {
-		client->reply(":server 403 " + channelName + " :No such channel");
+		client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
 		return ;
 	}
 	if (!client->isInChannel(channelName)) {
-		client->reply(":server 442 " + channelName + " :You're not on that channel");
+		client->reply(ERR_NOTONCHANNEL(host, nick, channelName));
 		return ;
 	}
 	if (!channel->isOperator(client)) {
-		client->reply(":server 482 " + channelName + " :You're not channel operator");
+		client->reply(ERR_CHANOPRIVSNEEDED(host, nick, channelName));
 		return ;
 	}
 
@@ -54,15 +58,14 @@ void	KickCommand::execute(Client* client, const std::vector<std::string>& args) 
 		std::string	targetNick = targetNicks[i];
 		Client*		targetClient = _server->findClientByNickname(targetNick);
 		if (!targetClient || !channel->getClients().count(targetClient)) {
-			client->reply(":server 441 " + targetNick + " " + channelName + " :They aren't on that channel");
+			client->reply(ERR_USERNOTINCHANNEL(host, nick, targetNick, channelName));
 			continue ;
 		}
 		if (channel->isOperator(targetClient)) {
 			channel->removeOperator(targetClient);
 		}
 
-		std::string kickMsg = client->getPrefix() + " KICK " + channelName + " " + targetNick + " :" + reason;
-		channel->broadcast(kickMsg, NULL);
+		channel->broadcast(RPL_KICK(client->getPrefix(), channelName, targetNick, reason), NULL);
 		channel->removeClient(targetClient);
 		targetClient->leaveChannel(channel->getName());
 	}

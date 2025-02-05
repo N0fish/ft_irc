@@ -3,6 +3,9 @@
 
 # define ERR_NEEDMOREPARAMS(host, client, command) (":" + host + " 461 " + client + " " + command + " :Not enough parameters")
 # define ERR_NOSUCHCHANNEL(host, client, channel) (":" + host + " 403 " + client + " " + channel + " :No such channel")
+# define ERR_CHANOPRIVSNEEDED(host, client, channel) (":" + host + " 482 " + client + " " + channel + " :You're not channel operator")
+# define ERR_BADCHANMASK(host, client, channel) (":" + host + " 476 " + client + " " + channel + " :Invalid channel name")
+# define ERR_NOTONCHANNEL(host, client, channel) (":" + host + " 442 " + client + " " + channel + " :You're not on that channel")
 
 // INFO
 # define RPL_INFO(host, client, message) (":" + host + " 371 " + client + " :" + message)
@@ -12,9 +15,7 @@
 // INVITE
 # define ERR_NOSUCHNICK(host, client, nickname) (":" + host + " 401 " + client + " " + nickname + " :No such nick")
 # define ERR_NOSUCHCHANNELL(host, client, nickname) (":" + host + " 403 " + client + " " + nickname + " :Cannot invite to local channels")
-# define ERR_NOTONCHANNEL(host, client, channel) (":" + host + " 442 " + client + " " + channel + " :You're not on that channel")
 # define ERR_USERONCHANNEL(host, client, nick, channel) (":" + host + " 443 " + client + " " + nick + " " + channel + " :User already on channel")
-# define ERR_CHANOPRIVSNEEDED(host, client, channel) (":" + host + " 482 " + client + " " + channel + " :You're not channel operator")
 # define RPL_INVITING(host, client, nick, channel) (":" + host + " 341 " + client + " " + nick + " " + channel)
 # define RPL_INVITE(user_prefix, nick, channel) (":" + user_prefix + " INVITE " + nick + " :" + channel)
 
@@ -24,7 +25,6 @@
 # define ERR_BANNEDFROMCHAN(host, client, channel) (":" + host + " 474 " + client + " " + channel + " :Cannot join channel (+b)")
 # define ERR_BADCHANNELKEY(host, client, channel) (":" + host + " 475 " + client + " " + channel + " :Cannot join channel (+k)")
 # define ERR_CHANNELISFULL(host, client, channel) (":" + host + " 471 " + client + " " + channel + " :Channel is full")
-# define ERR_BADCHANMASK(host, client, channel) (":" + host + " 476 " + client + " " + channel + " :Invalid channel name")
 # define ERR_UNAVAILRESOURCE(host, client, channel) (":" + host + " 437 " + client + " " + channel + " :Nick/channel is temporarily unavailable")
 # define ERR_CANNOTCREATECHANNEL(host, client, channel) (":" + host + " 403 " + client + " " + channel + " :Cannot create local channel manually")
 # define ERR_CHANNELNAMENOTUNIQUE(host, client, channel) (":" + host + " 476 " + client + " " + channel + " :Channel name must be unique")
@@ -35,5 +35,9 @@
 # define RPL_NAMREPLY(host, client, symbol, channel, list_of_nicks) (":" + host + " 353 " + client + " " + symbol + " " + channel + " :" + list_of_nicks)
 # define RPL_ENDOFNAMES(host, client, channel) (":" + host + " 366 " + client + " " + channel + " :End of /NAMES list")
 # define RPL_JOIN(user_prefix, channel) (":" + user_prefix + " JOIN " + channel)
+
+// KICK
+# define ERR_USERNOTINCHANNEL(host, client, nick, channel) (":" + host + " 441 " + client + " " + nick + " " + channel + " :They aren't on that channel")
+# define RPL_KICK(client_prefix, channel, target, reason) (":" + client_prefix + " KICK " + channel + " " + target + " :" + reason)
 
 #endif

@@ -49,7 +49,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 				Channel*	channel = _server->getChannel(currentChannelName);
 				if (channel) {
 					channel->removeClient(client);
-					channel->broadcast(client->getPrefix() + " PART " + channel->getName(), NULL);
+					channel->broadcast(":" + client->getPrefix() + " PART " + channel->getName(), NULL);
 					client->leaveChannel(channel->getName());
 
 					if (channel->isEmpty()) {
@@ -138,7 +138,7 @@ void	JoinCommand::execute(Client* client, const std::vector<std::string>& args) 
 			channel->addOperator(client);
 		}
 
-		std::string	joinMsg = client->getPrefix() + " JOIN " + channelName;
+		std::string	joinMsg = ":" + client->getPrefix() + " JOIN " + channelName;
 		channel->broadcast(joinMsg, NULL);
 
 		if (!channel->getTopic().empty()) {

@@ -44,7 +44,7 @@ void	ModeCommand::execute(Client* client, const std::vector<std::string>& args) 
 	bool		adding = true;
 	size_t		argIndex = 2;
 
-	std::string	broadcastMsg = client->getPrefix() + " MODE " + channelName + " ";  
+	std::string	broadcastMsg = ":" + client->getPrefix() + " MODE " + channelName + " ";  
 	std::string	appliedModes; 
 
 	for (size_t i = 0; i < modeString.size(); ++i) {
