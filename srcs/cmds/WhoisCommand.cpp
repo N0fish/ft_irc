@@ -1,59 +1,58 @@
 #include "WhoisCommand.hpp"
+/*
+WHOIS command.
+Retrieves user information: nickname, username, IP, channels, idle time.
 
+Команда WHOIS.
+Получает информацию о пользователе: ник, имя, IP, каналы, время простоя.
+*/
 WhoisCommand::WhoisCommand(Server *server) : Command(server) {}
 
 void	WhoisCommand::execute(Client *client, const std::vector<std::string> &args) {
 	std::string	host = _server->getHostname();
 	std::string	nick = client->getNickname();
 	if (args.empty()) {
-		return ;
-	}
+        client->reply(ERR_NONICKNAMEGIVEN(host, nick));
+        return ;
+    }
 
-	std::string	targetNick = args[0];
-	Client		*target = _server->findClientByNickname(targetNick);
-	if (!target) {
-		client->reply(":" + _server->getHostname() + " 401 " + targetNick + " :No such nick");
-		return ;
-	}
-
-	std::string	whoisInfo = ":" + _server->getHostname() + " 311 " + client->getNickname() +
-							" " + target->getNickname() + " " + target->getUsername() + " " +
-							target->getIpAddr() + " * :" + target->getRealName();
-	client->reply(whoisInfo);
-
-	std::string	whoisServer = ":" + _server->getHostname() + " 312 " + client->getNickname() +
-							" " + target->getNickname() + " " + _server->getHostname() +
-							" :42IRC Server";
-	client->reply(whoisServer);
-
-	if (!target->getChannels().empty())
-	{
-		std::string	whoisChannels = ":" + _server->getHostname() + " 319 " + client->getNickname() +
-									" " + target->getNickname() + " :";
-
-		const std::vector<std::string>	&channels = target->getChannels();
-		for (size_t i = 0; i < channels.size(); ++i)
-		{
-			std::string	prefix = "";
-			Channel		*channel = _server->getChannel(channels[i]);
-			if (channel && channel->isOperator(target))
-			{
-				prefix = "@";
-			}
-			whoisChannels += (i > 0 ? " " : "") + prefix + channels[i];
+	for (size_t i = 0; i < args.size() && i < 5; ++i) { // Обрабатываем до 5 никнеймов
+		std::string	targetNick = args[i];
+		Client		*target = _server->findClientByNickname(targetNick);
+		if (!target) {
+			client->reply(ERR_NOSUCHNICK(host, nick, targetNick));
+			continue;
 		}
-		client->reply(whoisChannels);
+		client->reply(RPL_WHOISUSER(host, nick, target->getNickname(),
+									target->getUsername(), target->getIpAddr(), target->getRealName()));
+		client->reply(RPL_WHOISSERVER(host, nick, target->getNickname(), host, "42IRC Server"));
+
+		for (size_t i = 0; i < target->getChannels().size(); ++i) {
+			Channel*	channel = _server->getChannel(target->getChannels()[i]);
+			if (channel && channel->isOperator(target)) {
+				client->reply(RPL_WHOISOPERATOR(host, nick, target->getNickname()));
+				break ;
+			}
+		}
+
+		if (!target->getChannels().empty()) {
+			std::string		channelList;
+			for (size_t i = 0; i < target->getChannels().size(); ++i) {
+				Channel*	channel = _server->getChannel(target->getChannels()[i]);
+				if (channel) {
+					std::string	prefix = channel->isOperator(target) ? "@" : "";
+					if (!channelList.empty()) {
+						channelList += " ";
+					}
+					channelList += prefix + target->getChannels()[i];
+				}
+			}
+			client->reply(RPL_WHOISCHANNELS(host, nick, target->getNickname(), channelList));
+		}
+
+		std::ostringstream	idleTime;
+		idleTime << target->getIdleTime();
+		client->reply(RPL_WHOISIDLE(host, nick, target->getNickname(), idleTime.str(), target->getFormattedSignonTime()));
 	}
-
-	std::ostringstream	idleTime;
-	idleTime << target->getIdleTime();
-
-	std::string whoisIdle = ":" + _server->getHostname() + " 317 " + client->getNickname() +
-							" " + target->getNickname() + " " + idleTime.str() +
-							" " + target->getFormattedSignonTime() + " :seconds idle, signon time";
-	client->reply(whoisIdle);
-
-	std::string	whoisEnd = ":" + _server->getHostname() + " 318 " + client->getNickname() +
-						" " + target->getNickname() + " :End of WHOIS list";
-	client->reply(whoisEnd);
+	client->reply(RPL_ENDOFWHOIS(host, nick, args[0]));
 }

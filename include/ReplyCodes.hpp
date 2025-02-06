@@ -121,6 +121,11 @@
 # define RPL_USERHOST(host, client, info) (":" + host + " 302 " + client + " :" + info)
 
 // WHOIS
-
+# define RPL_WHOISUSER(host, client, nick, user, ip, realname) (":" + host + " 311 " + client + " " + nick + " " + user + " " + ip + " * :" + realname)
+# define RPL_WHOISSERVER(host, client, nick, server, info) (":" + host + " 312 " + client + " " + nick + " " + server + " :" + info)
+# define RPL_WHOISCHANNELS(host, client, nick, channels) (":" + host + " 319 " + client + " " + nick + " :" + channels)
+# define RPL_WHOISOPERATOR(host, client, nick) (":" + host + " 313 " + client + " " + nick + " :is an IRC operator")
+# define RPL_WHOISIDLE(host, client, nick, idle, signon) (":" + host + " 317 " + client + " " + nick + " " + idle + " " + signon + " :seconds idle, signon time")
+# define RPL_ENDOFWHOIS(host, client, nick) (":" + host + " 318 " + client + " " + nick + " :End of WHOIS list")
 
 #endif
