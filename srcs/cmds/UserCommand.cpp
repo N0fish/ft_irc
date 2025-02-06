@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   UserCommand.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: algultse <algultse@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/06 15:34:41 by algultse          #+#    #+#             */
+/*   Updated: 2025/02/06 15:34:42 by algultse         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "UserCommand.hpp"
 #include "ListCommand.hpp"
 /*
@@ -39,10 +51,6 @@ void	UserCommand::execute(Client *client, const std::vector<std::string> &args) 
 	}
 	if (args[0].size() > 9) {
 		client->reply(ERR_INVALIDUSERNAME(host, nick, "(too long, max 9 chars)"));
-		return ;
-	}
-	if (!isNumber(args[1])) {
-		client->reply(ERR_INVALIDPARAMS(host, nick, "USER"));
 		return ;
 	}
 

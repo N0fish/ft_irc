@@ -42,6 +42,8 @@ void	Server::cleanup()	{
 		channels.erase(it);
 		it = next;
 	}
+	usedNicknames.clear();
+	uniqueChannels.clear();
 	std::cout << "\n👌 Server cleanup complete." << std::endl;
 }
 

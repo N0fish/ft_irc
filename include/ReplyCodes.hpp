@@ -29,6 +29,7 @@
 # define ERR_UNKNOWNCOMMAND(host, command) (":" + host + " 421 " + command + " :Unknown command")
 
 # define RPL_NOTICE(host, client, message) (":" + host + " NOTICE " + client + " :" + message)
+# define PRL_WELCOM(host, nick) (":" + host + " 001 " + nick + " :Welcome to the IRC server!")
 
 // INFO
 # define RPL_INFO(host, client, message) (":" + host + " 371 " + client + " :" + message)

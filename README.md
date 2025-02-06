@@ -1,5 +1,10 @@
 # ft_irc_3fill
 
+## make && :
+
+```
+valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./ircserv 6667 1234
+```
 ## Напоминания:
 
 ### Забрать изменения из текущей ветки удалённого репозитория:

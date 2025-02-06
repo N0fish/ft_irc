@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: algultse <algultse@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/06 15:34:58 by algultse          #+#    #+#             */
+/*   Updated: 2025/02/06 15:34:59 by algultse         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Client.hpp"
 #include "ListCommand.hpp"
 
@@ -126,8 +138,10 @@ std::string	Client::getIpAddr() const {
 
 void	Client::registerAction(Server *server) {
     (void)server;
+	if (isRegistered())
+		return ;
     setState(REGISTERED);
-    reply(":server 001 " + getNickname() + " :Welcome to the IRC network " + getNickname() + "!!!");
+    reply(PRL_WELCOM(server->getHostname(), this->getNickname()));
     reply("PING :server");
 }
 
