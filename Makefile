@@ -27,13 +27,11 @@ OBJS = $(OBJDIR)Server.o $(OBJDIR)Client.o $(OBJDIR)Channel.o $(OBJDIR)utils.o \
 	$(OBJDIR)cmds/PongCommand.o $(OBJDIR)cmds/ListCommand.o $(OBJDIR)cmds/QuitCommand.o \
 	$(OBJDIR)cmds/WhoisCommand.o $(OBJDIR)cmds/InfoCommand.o $(OBJDIR)cmds/NamesCommand.o \
 	$(OBJDIR)main.o
-# $(SRC:%.c=$(OBJDIR)%.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
-# $(CXX) $(OBJS) -o $(NAME)
 
 $(OBJDIR)%.o: $(SRCDIR)%.cpp
 	@mkdir -p $(dir $@) $(OBJDIR)cmds
