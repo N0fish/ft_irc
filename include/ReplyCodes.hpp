@@ -66,4 +66,7 @@
 # define RPL_NICKNOTICE(host, newNick) (":" + host + " NOTICE " + newNick + " :Nickname set successfully")
 # define RPL_NICKCHANGE(oldNick, username, newNick) (":" + oldNick + "!" + username + "@server NICK " + newNick)
 
+// PART
+# define RPL_PART(user_prefix, channel, reason) (":" + user_prefix + " PART " + channel + (reason.empty() ? "" : " :" + reason))
+
 #endif

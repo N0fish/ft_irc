@@ -11,8 +11,6 @@ Returns `353` for each channel and `366` at the end of each list.
 NamesCommand::NamesCommand(Server* server) : Command(server) {}
 
 void	NamesCommand::execute(Client* client, const std::vector<std::string>& args) {
-	std::string	host = _server->getHostname();
-	std::string	nick = client->getNickname();
 	if (client == NULL)
 		return ;
 
