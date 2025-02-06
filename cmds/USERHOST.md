@@ -20,3 +20,21 @@
    :ircd.stealth.net 302 yournick :syrk=+syrk@millennium.stealth.net
                                    ; Reply for user syrk
 _____________________________________________________________________________________________________________________
+4.8 Сообщение USERHOST
+
+      Команда: USERHOST
+   Параметры: <nickname> *( SPACE <nickname> )
+
+   Команда USERHOST принимает список до 5 никнеймов, разделённых пробелами, и возвращает информацию о каждом найденном никнейме. Ответ содержит список, в котором информация о каждом пользователе разделена пробелом.
+
+   Числовые ответы (Numeric Replies):
+
+           RPL_USERHOST (302) – успешный ответ с информацией.
+           ERR_NEEDMOREPARAMS (461) – ошибка при недостатке параметров.
+
+   Пример:
+
+   USERHOST Wiz Michael syrk       ; Запрос информации о пользователях Wiz, Michael и syrk.
+
+   :ircd.stealth.net 302 yournick :syrk=+syrk@millennium.stealth.net
+                                   ; Ответ содержит информацию о пользователе syrk.

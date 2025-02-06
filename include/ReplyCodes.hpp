@@ -118,6 +118,7 @@
 # define RPL_UMODEIS(host, client, modes) (":" + host + " 221 " + client + " " + modes)
 
 // USERHOST
+# define RPL_USERHOST(host, client, info) (":" + host + " 302 " + client + " :" + info)
 
 // WHOIS
 

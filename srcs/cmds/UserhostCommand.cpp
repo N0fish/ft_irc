@@ -1,5 +1,13 @@
 #include "UserhostCommand.hpp"
+/*
+USERHOST command.
+- Retrieves host information for up to 5 nicknames.
+- Skips unknown nicknames.
 
+Команда USERHOST.
+- Получает информацию о хосте для максимум 5 никнеймов.
+- Пропускает неизвестные никнеймы.
+*/
 UserhostCommand::UserhostCommand(Server* server) : Command(server) {}
 
 void	UserhostCommand::execute(Client* client, const std::vector<std::string>& args) {
@@ -25,5 +33,5 @@ void	UserhostCommand::execute(Client* client, const std::vector<std::string>& ar
 		std::string	host = c->getIpAddr().empty() ? "unknown" : c->getIpAddr(); 
 		info += c->getNickname() + "=" + username + "@" + host;
 	}
-	client->reply(":server 302 " + client->getNickname() + " :" + info);
+	client->reply(RPL_USERHOST(host, nick, info));
 }
