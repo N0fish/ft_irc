@@ -29,7 +29,7 @@ void	PrivmsgCommand::execute(Client* client, const std::vector<std::string>& arg
 		message += args[i] + " ";
 	}
 	if (!message.empty()) {
-		message.pop_back();
+		message.erase(message.size() - 1);
 	}
 	if (!message.empty() && message[0] == ':') {
 		message = message.substr(1);
