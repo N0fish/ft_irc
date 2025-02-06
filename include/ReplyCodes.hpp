@@ -96,11 +96,17 @@
 # define RPL_TOPICWHOTIME(host, client, channel, setter, time) (":" + host + " 333 " + client + " " + channel + " " + setter + " " + time)
 # define BROADCAST_TOPIC(client, channel, message) (":" + client->getPrefix() + " TOPIC " + channel->getName() + " :" + message);
 
-
 // USER
-# define ERR_NONICKNAME(host, client) (":" + host + " 431 " + client + ":No nickname given")
 # define ERR_NOTREGISTERED(host, client) (":" + host + " 451 " + client + ":You have not registered!")
-# define ERR_INVALIDUSERNAME(host, nickname, reason) (":" + host + " 432 " + nickname + " :Invalid username " + reason)
 # define ERR_ALREADYREGISTERED(host, nickname) (":" + host + " 462 " + nickname + " :You may not reregister!")
+# define ERR_INVALIDUSERNAME(host, nickname, reason) (":" + host + " 432 " + nickname + " :Invalid username " + reason)
+# define ERR_USERSDONTMATCH(host, client) (":" + host + " 502 " + client + " :Cannot change mode for other users")
+# define ERR_UMODEUNKNOWNFLAG(host, client, flag) (":" + host + " 501 " + client + " :Unknown MODE flag " + flag)
+# define RPL_UMODEIS(host, client, modes) (":" + host + " 221 " + client + " " + modes)
+
+// USERHOST
+
+// WHOIS
+
 
 #endif

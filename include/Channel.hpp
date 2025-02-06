@@ -2,7 +2,6 @@
 # define CHANNEL_HPP
 
 # include "Client.hpp"
-
 /*
 Class representing an IRC channel.
 Manages the list of members, operators, bans, and channel settings.
@@ -10,7 +9,6 @@ Manages the list of members, operators, bans, and channel settings.
 Класс, представляющий IRC-канал.
 Управляет списком участников, операторами, банами и настройками канала.
 */
-
 class Channel {
 	private:
 		std::string			name;
