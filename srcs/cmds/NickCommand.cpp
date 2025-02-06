@@ -1,55 +1,62 @@
 #include "NickCommand.hpp"
+/*
+NICK command.
+Allows a client to set or change their nickname.
+Handles nickname validation, uniqueness, and broadcast of changes.
+Supports error handling for invalid or already taken nicknames.
 
+Команда NICK.
+Позволяет клиенту установить или изменить никнейм.
+Проверяет корректность ника, его уникальность и оповещает других пользователей об изменении.
+Обрабатывает ошибки для неверных или уже занятых никнеймов.
+*/
 NickCommand::NickCommand(Server* server) : Command(server) {}
 
 void	NickCommand::execute(Client* client, const std::vector<std::string>& args) {
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 	if (client->getState() == UNAUTHENTICATED) {
-		client->reply(":server 451 NICK :You have not registered");
+		client->reply(ERR_RESTRICTED(host, nick));
 		return ;
 	}
 	if (args.empty()) {
-		client->reply(":server 431 :No nickname given");
-		return ;
-	}
-	std::string	newNick = args[0];
-	if (args.size() > 1) {
-		client->reply(":server 432 " + newNick + " :Erroneous nickname");
+		client->reply(ERR_NONICKNAMEGIVEN(host, nick));
 		return ;
 	}
 
-	const int	MAX_NICK_LEN = 9;
-	if (newNick.length() > MAX_NICK_LEN) {
-		client->reply(":server 432 " + newNick + " :Erroneous nickname");
+	std::string	newNick = args[0];
+	if (args.size() > 1) {
+		client->reply(ERR_ERRONEUSNICKNAME(host, nick, newNick));
 		return ;
 	}
-	if (!std::isalpha(newNick[0])) {
-		client->reply(":server 432 " + newNick + " :Erroneous nickname");
+	const int	MAX_NICK_LEN = 9;
+	if (newNick.length() > MAX_NICK_LEN) {
+		client->reply(ERR_ERRONEUSNICKNAME(host, nick, newNick));
 		return ;
 	}
 	std::string	allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-[]\\^{}";
-	if (newNick.find_first_not_of(allowedChars) != std::string::npos) {
-		client->reply(":server 432 " + newNick + " :Erroneous nickname");
+	if (newNick.empty() || !std::isalpha(newNick[0])
+		|| newNick.find_first_not_of(allowedChars) != std::string::npos) {
+		client->reply(ERR_ERRONEUSNICKNAME(host, nick, newNick));
 		return ;
 	}
 	if (_server->isNicknameTaken(args[0])) {
-		client->reply(":server 433 * " + args[0] + " :Nickname is already in use");
+		client->reply(ERR_NICKNAMEINUSE(host, nick, newNick));
 		return ;
 	}
 	std::string	oldNick = client->getNickname();
-
 	_server->removeNickname(client->getNickname());
 	client->setNickname(newNick);
 	client->setNicknameSet(true);
 	_server->addNickname(newNick);
 
 	if (!client->isRegistered()) {
-		client->reply(":server NOTICE " + newNick + " :Nickname set successfully");
+		client->reply(RPL_NICKNOTICE(host, newNick));
 		if (client->isNicknameSet() && client->isUsernameSet()) {
 			client->registerAction(_server);
 		}
 		return ;
 	}
 
-	std::string	nickChangeMsg = ":" + oldNick + "!" + client->getUsername() + "@server NICK " + newNick;
-	_server->broadcast(nickChangeMsg, NULL);
+	_server->broadcast(RPL_NICKCHANGE(oldNick, client->getUsername(), newNick), NULL);
 }
