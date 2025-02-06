@@ -82,4 +82,8 @@
 # define ERR_PASSWDMISMATCH(host, client) (":" + host + " 464 " + client + " :Password incorrect")
 # define RPL_AUTH_SUCCESS(host) (":" + host + " NOTICE * :Authentication successful")
 
+// PING
+# define ERR_NOORIGIN(host, client) (":" + host + " 409 " + client + " :No origin specified")
+# define RPL_PONG(server, target) ("PONG " + server + " " + target)
+
 #endif
