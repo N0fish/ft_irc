@@ -119,6 +119,10 @@ time_t	Channel::getTopicSetTime() const {
 	return (topicSetTime);
 }
 
+bool	Channel::supportsTopic() const {
+    return (!topicRestricted);
+}
+
 void	Channel::broadcast(const std::string& message, Client* sender) {
 	for (std::set<Client*>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		if (*it != sender)

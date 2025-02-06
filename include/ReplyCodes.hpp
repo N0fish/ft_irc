@@ -37,7 +37,6 @@
 # define ERR_DUPLICATELOCALCHANNEL(host, client, channel) (":" + host + " 403 " + client + " " + channel + " :Cannot create local channel with duplicate name")
 
 # define RPL_TOPIC(host, client, channel, topic) (":" + host + " 332 " + client + " " + channel + " :" + topic)
-# define RPL_NOTOPIC(host, client, channel) (":" + host + " 331 " + client + " " + channel + " :No topic is set")
 # define RPL_JOIN(user_prefix, channel) (":" + user_prefix + " JOIN " + channel)
 
 // KICK
@@ -68,11 +67,6 @@
 # define ERR_RESTRICTED(host, client) (":" + host + " 484 " + client + " :Your connection is restricted")
 # define RPL_NICKNOTICE(host, newNick) (":" + host + " NOTICE " + newNick + " :Nickname set successfully")
 # define RPL_NICKCHANGE(oldNick, username, newNick) (":" + oldNick + "!" + username + "@server NICK " + newNick)
-// USER
-# define ERR_NONICKNAME(host, client) (":" + host + " 431 " + client + ":No nickname given")
-# define ERR_NOTREGISTERED(host, client) (":" + host + " 451 " + client + ":You have not registered!")
-# define ERR_INVALIDUSERNAME(host, nickname, reason) (":" + host + " 432 " + nickname + " :Invalid username " + reason)
-# define ERR_ALREADYREGISTERED(host, nickname) (":" + host + " 462 " + nickname + " :You may not reregister!")
 
 // PART
 # define RPL_PART(user_prefix, channel, reason) (":" + user_prefix + " PART " + channel + (reason.empty() ? "" : " :" + reason))
@@ -95,5 +89,18 @@
 // QUIT
 # define RPL_QUIT(user_prefix, reason) (":" + user_prefix + " QUIT :" + reason)
 # define RPL_ERROR(host, client, message) (":" + host + " ERROR :" + message)
+
+// TOPIC
+# define RPL_NOTOPIC(host, client, channel) (":" + host + " 331 " + client + " " + channel + " :No topic is set")
+# define RPL_TOPIC(host, client, channel, topic) (":" + host + " 332 " + client + " " + channel + " :" + topic)
+# define RPL_TOPICWHOTIME(host, client, channel, setter, time) (":" + host + " 333 " + client + " " + channel + " " + setter + " " + time)
+# define BROADCAST_TOPIC(client, channel, message) (":" + client->getPrefix() + " TOPIC " + channel->getName() + " :" + message);
+
+
+// USER
+# define ERR_NONICKNAME(host, client) (":" + host + " 431 " + client + ":No nickname given")
+# define ERR_NOTREGISTERED(host, client) (":" + host + " 451 " + client + ":You have not registered!")
+# define ERR_INVALIDUSERNAME(host, nickname, reason) (":" + host + " 432 " + nickname + " :Invalid username " + reason)
+# define ERR_ALREADYREGISTERED(host, nickname) (":" + host + " 462 " + nickname + " :You may not reregister!")
 
 #endif

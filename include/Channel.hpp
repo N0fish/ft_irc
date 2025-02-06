@@ -64,6 +64,7 @@ class Channel {
 		bool						hasTopic() const;
 		std::string					getTopicSetter() const;
 		time_t						getTopicSetTime() const;
+		bool						supportsTopic() const;
 
 		void						broadcast(const std::string& message, Client* sender);
 		const std::set<Client*>&	getClients() const;
