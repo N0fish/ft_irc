@@ -12,6 +12,7 @@
 # define ERR_TOOMANYMATCHES(host, client) (":" + host + " 416 " + client + " :Too many matches")
 # define RPL_NAMREPLY(host, client, symbol, channel, list_of_nicks) (":" + host + " 353 " + client + " " + symbol + " " + channel + " :" + list_of_nicks)
 # define ERR_UNAVAILRESOURCE(host, client, nicknameorchannel) (":" + host + " 437 " + client + " " + nicknameorchannel + " :Nick/channel is temporarily unavailable")
+# define ERR_NOSUCHNICK(host, client, nickname) (":" + host + " 401 " + client + " " + nickname + " :No such nick")
 
 # define RPL_NOTICE(host, client, message) (":" + host + " NOTICE " + client + " :" + message)
 
@@ -20,7 +21,6 @@
 # define RPL_ENDOFINFO(host, client) (":" + host + " 374 " + client + " :End of INFO")
 
 // INVITE
-# define ERR_NOSUCHNICK(host, client, nickname) (":" + host + " 401 " + client + " " + nickname + " :No such nick")
 # define ERR_NOSUCHCHANNELL(host, client, nickname) (":" + host + " 403 " + client + " " + nickname + " :Cannot invite to local channels")
 # define ERR_USERONCHANNEL(host, client, nick, channel) (":" + host + " 443 " + client + " " + nick + " " + channel + " :User already on channel")
 # define RPL_INVITING(host, client, nick, channel) (":" + host + " 341 " + client + " " + nick + " " + channel)
@@ -85,5 +85,11 @@
 // PING/PONG
 # define ERR_NOORIGIN(host, client) (":" + host + " 409 " + client + " :No origin specified")
 # define RPL_PONG(server, target) ("PONG " + server + " " + target)
+
+// PRIVMSG
+# define ERR_NORECIPIENT(host, client) (":" + host + " 411 " + client + " :No recipient given (PRIVMSG)")
+# define ERR_NOTEXTTOSEND(host, client) (":" + host + " 412 " + client + " :No text to send")
+# define ERR_CANNOTSENDTOCHAN(host, client, channel) (":" + host + " 404 " + client + " " + channel + " :Cannot send to channel")
+# define RPL_PRIVMSG(sender_prefix, target, message) (":" + sender_prefix + " PRIVMSG " + target + " :" + message)
 
 #endif
