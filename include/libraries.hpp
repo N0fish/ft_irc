@@ -25,5 +25,6 @@
 
 std::vector<std::string>	split(const std::string &str, char delimiter);
 std::string					joinArgs(const std::vector<std::string> &args, size_t startIndex);
+bool                        isNumber(const std::string &s);
 
 #endif

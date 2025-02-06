@@ -2,6 +2,7 @@
 # define REPLY_CODES_HPP
 
 # define ERR_NEEDMOREPARAMS(host, client, command) (":" + host + " 461 " + client + " " + command + " :Not enough parameters")
+# define ERR_INVALIDPARAMS(host, client, command) (":" + host + " 461 " + client + " " + command + " :Invalid parameteers")
 # define ERR_NOSUCHCHANNEL(host, client, channel) (":" + host + " 403 " + client + " " + channel + " :No such channel")
 # define ERR_CHANOPRIVSNEEDED(host, client, channel) (":" + host + " 482 " + client + " " + channel + " :You're not channel operator")
 # define ERR_BADCHANMASK(host, client, channel) (":" + host + " 476 " + client + " " + channel + " :Invalid channel name")
@@ -11,6 +12,8 @@
 # define ERR_TOOMANYMATCHES(host, client) (":" + host + " 416 " + client + " :Too many matches")
 # define RPL_NAMREPLY(host, client, symbol, channel, list_of_nicks) (":" + host + " 353 " + client + " " + symbol + " " + channel + " :" + list_of_nicks)
 # define ERR_UNAVAILRESOURCE(host, client, nicknameorchannel) (":" + host + " 437 " + client + " " + nicknameorchannel + " :Nick/channel is temporarily unavailable")
+
+# define RPL_NOTICE(host, client, message) (":" + host + " NOTICE " + client + " :" + message)
 
 // INFO
 # define RPL_INFO(host, client, message) (":" + host + " 371 " + client + " :" + message)
@@ -65,6 +68,11 @@
 # define ERR_RESTRICTED(host, client) (":" + host + " 484 " + client + " :Your connection is restricted")
 # define RPL_NICKNOTICE(host, newNick) (":" + host + " NOTICE " + newNick + " :Nickname set successfully")
 # define RPL_NICKCHANGE(oldNick, username, newNick) (":" + oldNick + "!" + username + "@server NICK " + newNick)
+// USER
+# define ERR_NONICKNAME(host, client) (":" + host + " 431 " + client + ":No nickname given")
+# define ERR_NOTREGISTERED(host, client) (":" + host + " 451 " + client + ":You have not registered!")
+# define ERR_INVALIDUSERNAME(host, nickname, reason) (":" + host + " 432 " + nickname + " :Invalid username " + reason)
+# define ERR_ALREADYREGISTERED(host, nickname) (":" + host + " 462 " + nickname + " :You may not reregister!")
 
 // PART
 # define RPL_PART(user_prefix, channel, reason) (":" + user_prefix + " PART " + channel + (reason.empty() ? "" : " :" + reason))

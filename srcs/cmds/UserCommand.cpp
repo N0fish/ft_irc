@@ -1,56 +1,62 @@
 #include "UserCommand.hpp"
 #include "ListCommand.hpp"
+#include "ReplyCodes.hpp"
 
-UserCommand::UserCommand(Server* server) : Command(server) {}
+UserCommand::UserCommand(Server *server) : Command(server) {}
 
-void	UserCommand::execute(Client* client, const std::vector<std::string>& args) {
-	if (client->getState() == UNAUTHENTICATED) { // если есть возможность оставить это условие за место второго. то оно будет лучше, так как проверяет на PASS and NICK, ну и написано в одном стиле с предыдущими командами 
-		client->reply(":" + _server->getHostname()
-					+ " 462 " + client->getNickname() + " USER :You have not registered");
-		return ;
-	}
-    // if (client->isUsernameSet()) {
-    //     client->reply(":" + _server->getHostname()
-    //                 + " 462 " + client->getNickname() + " USER :You may not reregister");
-    //     return ;
-    // }
+void UserCommand::execute(Client *client, const std::vector<std::string> &args)
+{
+    std::string host = _server->getHostname();
+    std::string nick = client->getNickname();
 
-    if (!client->isNicknameSet()) {
-        client->reply(":" + _server->getHostname()
-                    + " 461 " + client->getNickname() + " USER :You must set a nickname first");
-        return ;
+    if (client->getState() == UNAUTHENTICATED)
+    { // если есть возможность оставить это условие за место второго. то оно будет лучше, так как проверяет на PASS and NICK, ну и написано в одном стиле с предыдущими командами
+        client->reply(ERR_NOTREGISTERED(host, nick));
+        return;
     }
-
-    if (args.size() < 4) {
-        client->reply(":" + _server->getHostname() 
-                    + " 461 " + client->getNickname() + " USER :Not enough parameters");
-        return ;
+    if (client->isUsernameSet())
+    {
+        client->reply(ERR_ALREADYREGISTERED(host, nick));
+        return;
     }
-
-    if (args[0].size() > 9) {
-        client->reply(":" + _server->getHostname() + " 432 " + client->getNickname()
-                    + " USER :Username is too long (max 9 characters)");
-        return ;
+    if (!client->isNicknameSet())
+    {
+        client->reply(ERR_NONICKNAME(host, nick));
+        return;
+    }
+    if (args.size() < 4)
+    {
+        client->reply(ERR_NEEDMOREPARAMS(host, nick, "USER"));
+        return;
+    }
+    if (args[0].size() > 9)
+    {
+        client->reply(ERR_INVALIDUSERNAME(host, nick, "(too long, max 9 chars)"));
+        return;
+    }
+    if (!isNumber(args[1]))
+    {
+        client->reply(ERR_INVALIDPARAMS(host, nick, "USER"));
+        return;
     }
 
     client->setUsername(args[0]);
     client->setUsernameSet(true);
 
-    std::string realname;
-    if (args[3][0] == ':') { 
+    std::string realname = args[3];
+    if (args[3][0] == ':')
+    {
         realname = args[3].substr(1);
-        for (size_t i = 4; i < args.size(); ++i) {
+        for (size_t i = 4; i < args.size(); ++i)
+        {
             realname += " " + args[i];
         }
-    } else {
-        realname = args[3];
     }
-
     client->setRealName(realname);
-    client->reply(":" + _server->getHostname() + " NOTICE " + client->getNickname() +
-                " :Username set successfully");
+    client->reply(RPL_NOTICE(host, nick, "Username set successfully"));
 
-    if (client->isNicknameSet() && client->isUsernameSet()) {
+    if (client->isNicknameSet() && client->isUsernameSet())
+    {
         client->registerAction(_server);
     }
 }
