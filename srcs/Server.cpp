@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: econtess <econtess@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/06 17:24:20 by econtess          #+#    #+#             */
+/*   Updated: 2025/02/06 17:24:20 by econtess         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Command.hpp"
@@ -58,7 +70,7 @@ void	Server::initSocket() {
 		throw std::runtime_error("Failed to set socket options");
 	}
 
-	int	flags = fcntl(serverSocket, F_GETFL, 0);
+	int	flags = fcntl(serverSocket, F_GETFL, O_NONBLOCK);
 	if (flags < 0 || fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
 		throw std::runtime_error("Failed to set non-blocking mode");
 	}
