@@ -1,10 +1,22 @@
 #include "PartCommand.hpp"
+/*
+PART command.
+Removes a user from one or more channels.
+If a reason is provided, it is included in the departure message.
+Channels are deleted if they become empty.
 
+Команда PART.
+Удаляет пользователя из одного или нескольких каналов.
+Если передана причина выхода, она добавляется в сообщение.
+Если канал становится пустым, он удаляется.
+*/
 PartCommand::PartCommand(Server* server) : Command(server) {}
 
 void	PartCommand::execute(Client* client, const std::vector<std::string>& args) {
+	std::string	host = _server->getHostname();
+	std::string	nick = client->getNickname();
 	if (args.empty()) {
-		client->reply(":server 461 PART :Not enough parameters");
+		client->reply(ERR_NEEDMOREPARAMS(host, nick, "PART"));
 		return ;
 	}
 
@@ -21,24 +33,20 @@ void	PartCommand::execute(Client* client, const std::vector<std::string>& args) 
 		std::string	channelName = channelNames[i];
 		Channel*	channel = _server->getChannel(channelName);
 		if (!channel) {
-			client->reply(":server 403 " + channelName + " :No such channel");
+			client->reply(ERR_NOSUCHCHANNEL(host, nick, channelName));
 			continue ;
 		}
 
 		if (!client->isInChannel(channelName)) {
-			client->reply(":server 442 " + channelName + " :You're not on that channel");
+			client->reply(ERR_NOTONCHANNEL(host, nick, channelName));
 			continue ;
 		}
 
-		std::string	partMsg = ":" + client->getPrefix() + " PART " + channelName;
-		if (!reason.empty()) {
-			partMsg += " :" + reason;
-		}
-
+		std::string	partMsg = RPL_PART(client->getPrefix(), channelName, reason);
 		channel->broadcast(partMsg, NULL);
+
 		channel->removeClient(client);
 		client->leaveChannel(channelName);
-
 		if (channel->isEmpty()) {
 			_server->deleteChannel(channelName);
 		}
