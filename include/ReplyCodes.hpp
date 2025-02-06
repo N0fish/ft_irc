@@ -26,6 +26,7 @@
 # define RPL_NAMREPLY(host, client, symbol, channel, list_of_nicks) (":" + host + " 353 " + client + " " + symbol + " " + channel + " :" + list_of_nicks)
 # define ERR_UNAVAILRESOURCE(host, client, nicknameorchannel) (":" + host + " 437 " + client + " " + nicknameorchannel + " :Nick/channel is temporarily unavailable")
 # define ERR_NOSUCHNICK(host, client, nickname) (":" + host + " 401 " + client + " " + nickname + " :No such nick")
+# define ERR_UNKNOWNCOMMAND(host, command) (":" + host + " 421 " + command + " :Unknown command")
 
 # define RPL_NOTICE(host, client, message) (":" + host + " NOTICE " + client + " :" + message)
 

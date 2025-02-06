@@ -37,8 +37,6 @@ void	Channel::addClient(Client* client) {
 
 void	Channel::removeClient(Client* client) {
 	clients.erase(client);
-	// if (clients.empty())
-	// 	return ; // Оставляем канал, но сохраняем его настройки
 }
 
 bool	Channel::isBanned(Client* client) const {
@@ -120,7 +118,7 @@ time_t	Channel::getTopicSetTime() const {
 }
 
 bool	Channel::supportsTopic() const {
-    return (!topicRestricted);
+	return (!topicRestricted);
 }
 
 void	Channel::broadcast(const std::string& message, Client* sender) {
@@ -134,11 +132,11 @@ const std::set<Client*>&	Channel::getClients() const {
 	return (clients);
 }
 
-bool Channel::isClientInChannel(Client* client) const {
-    for (std::set<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
-        if ((*it)->getNickname() == client->getNickname()) {
-            return true;
-        }
-    }
-    return false;
+bool	Channel::isClientInChannel(Client* client) const {
+	for (std::set<Client*>::const_iterator it = clients.begin(); it != clients.end(); ++it) {
+		if ((*it)->getNickname() == client->getNickname()) {
+			return (true);
+		}
+	}
+	return (false);
 }
