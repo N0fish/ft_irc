@@ -77,4 +77,9 @@
 // PART
 # define RPL_PART(user_prefix, channel, reason) (":" + user_prefix + " PART " + channel + (reason.empty() ? "" : " :" + reason))
 
+// PASS
+# define ERR_ALREADYREGISTRED(host, client) (":" + host + " 462 " + client + " :You may not reregister")
+# define ERR_PASSWDMISMATCH(host, client) (":" + host + " 464 " + client + " :Password incorrect")
+# define RPL_AUTH_SUCCESS(host) (":" + host + " NOTICE * :Authentication successful")
+
 #endif
