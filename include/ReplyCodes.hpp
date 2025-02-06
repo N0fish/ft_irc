@@ -1,6 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ReplyCodes.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: algultse <algultse@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/06 20:07:54 by algultse          #+#    #+#             */
+/*   Updated: 2025/02/06 06:36:31 by algultse         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef REPLY_CODES_HPP
 # define REPLY_CODES_HPP
 
+// general
 # define ERR_NEEDMOREPARAMS(host, client, command) (":" + host + " 461 " + client + " " + command + " :Not enough parameters")
 # define ERR_INVALIDPARAMS(host, client, command) (":" + host + " 461 " + client + " " + command + " :Invalid parameteers")
 # define ERR_NOSUCHCHANNEL(host, client, channel) (":" + host + " 403 " + client + " " + channel + " :No such channel")

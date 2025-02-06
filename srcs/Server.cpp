@@ -26,9 +26,7 @@ void Server::cleanup()
     {
         close(clients[i].fd);
     }
-    // nettoie tout
     clients.clear();
-    // nettoie vraiment tout et vide le vector
     std::vector<pollfd>().swap(clients);
 
     for (size_t i = 0; i < clientObjects.size(); ++i)
@@ -94,11 +92,6 @@ void Server::initSocket()
     std::cout << "🏁 Server started on port " << port << std::endl;
 }
 
-// сервер создаёт клиента (Client) при подключении
-
-// - сервр принимает новое соединение
-// - добавляет клиента в poll() для обработки событий
-// - создает новый объект Client и сохраняет его
 void Server::acceptConnection()
 {
     struct sockaddr_in clientAddr;
@@ -187,8 +180,6 @@ void Server::handleClient(int clientFd)
     }
 }
 
-// Команды добавляются в std::map<std::string, Command*>
-// commands в методе initializeCommands().
 void Server::initializeCommands()
 {
     commands["PASS"] = new PassCommand(this);
@@ -211,11 +202,7 @@ void Server::initializeCommands()
     commands["QUIT"] = new QuitCommand(this);
     commands["WHOIS"] = new WhoisCommand(this);
     commands["INFO"] = new InfoCommand(this);
-
     commands["NAMES"] = new NamesCommand(this);
-
-    // commands["VERSION"] = new VersionCommand(this);
-    // commands["ADMIN"] = new AdminCommand(this);
 }
 
 void Server::removeClientFromChannels(Client *client)

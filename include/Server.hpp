@@ -1,8 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: econtess <econtess@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/20 15:09:10 by econtess          #+#    #+#             */
+/*   Updated: 2025/02/06 10:03:00 by econtess         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef SERVER_HPP
-#define SERVER_HPP
+# define SERVER_HPP
 
-#include "libraries.hpp"
-
+# include "libraries.hpp"
 /*
 Class representing an IRC server.
 Manages network connections, client authentication,
@@ -14,70 +25,68 @@ Responsible for handling connections, processing messages, and managing clients.
 обработкой команд и управлением каналами.
 Отвечает за приём подключений, обработку сообщений и управление клиентами.
 */
-
 class Client;
 class Channel;
 class Command;
 
-class Server
-{
-private:
-    int serverSocket;
-    int port;
-    std::string password;
-    struct sockaddr_in serverAddr;
-    std::vector<struct pollfd> clients;
-    std::vector<Client *> clientObjects;
-    std::map<std::string, Command *> commands;
-    std::map<std::string, Channel *> channels;
-    std::set<std::string> uniqueChannels;
-    time_t creationTime;
-    std::set<std::string> usedNicknames;
+class Server {
+	private:
+		int									serverSocket;
+		int									port;
+		std::string							password;
+		struct sockaddr_in					serverAddr;
+		std::vector<struct pollfd>			clients;
+		std::vector<Client *>				clientObjects;
+		std::map<std::string, Command *>	commands;
+		std::map<std::string, Channel *>	channels;
+		std::set<std::string>				uniqueChannels;
+		time_t								creationTime;
+		std::set<std::string>				usedNicknames;
 
-    void initSocket();
-    void acceptConnection();
-    void handleClient(int clientFd);
-    void initializeCommands();
-    Client *findClientByFd(int fd);
-    void handleCommand(Client *client, const std::string &command);
-    void addNickname(const std::string &nickname);
-    void removeNickname(const std::string &nickname);
-    bool isNicknameTaken(const std::string &nickname) const;
-    void removeClientFromChannels(Client *client);
-    void disconnectClient(Client *client);
-    void deleteChannel(const std::string &channelName);
+		void	initSocket();
+		void	acceptConnection();
+		void	handleClient(int clientFd);
+		void	initializeCommands();
+		Client	*findClientByFd(int fd);
+		void	handleCommand(Client *client, const std::string &command);
+		void	addNickname(const std::string &nickname);
+		void	removeNickname(const std::string &nickname);
+		bool	isNicknameTaken(const std::string &nickname) const;
+		void	removeClientFromChannels(Client *client);
+		void	disconnectClient(Client *client);
+		void	deleteChannel(const std::string &channelName);
 
-    friend class PassCommand;
-    friend class NickCommand;
-    friend class JoinCommand;
+		friend class PassCommand;
+		friend class NickCommand;
+		friend class JoinCommand;
 
-    friend class PartCommand;
-    friend class KickCommand;
-    friend class QuitCommand;
+		friend class PartCommand;
+		friend class KickCommand;
+		friend class QuitCommand;
 
-public:
-    Server(int port, const std::string &password);
-    ~Server();
+	public:
+		Server(int port, const std::string &password);
+		~Server();
 
-    void run();
-    void cleanup();
+		void									run();
+		void									cleanup();
 
-    std::string getPassword() const;
-    std::string getHostname() const;
+		std::string								getPassword() const;
+		std::string								getHostname() const;
 
-    Client *findClientByNickname(const std::string &nickname) const;
-    Channel *getChannel(const std::string &name);
-    const std::map<std::string, Channel *> &getChannels() const;
-    const std::vector<std::string> getChannelsName();
-    bool isChannelNameTaken(const std::string &name);
-    Channel *createChannel(const std::string &name, const std::string &pass, Client *creator);
+		Client									*findClientByNickname(const std::string &nickname) const;
+		Channel									*getChannel(const std::string &name);
+		const std::map<std::string, Channel *>	&getChannels() const;
+		const std::vector<std::string>			getChannelsName();
+		bool									isChannelNameTaken(const std::string &name);
+		Channel									*createChannel(const std::string &name, const std::string &pass, Client *creator);
 
-    time_t getCreationTime() const;
-    std::string getVersion() const;
-    std::string getOSInfo() const;
-    std::string getUptime() const;
+		time_t									getCreationTime() const;
+		std::string								getVersion() const;
+		std::string								getOSInfo() const;
+		std::string								getUptime() const;
 
-    void broadcast(const std::string &message, Client *sender);
+		void									broadcast(const std::string &message, Client *sender);
 };
 
 #endif

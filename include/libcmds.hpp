@@ -1,5 +1,17 @@
-#ifndef LIB_CMD_HPP
-# define LIB_CMD_HPP
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   libcmds.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: algultse <algultse@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/27 17:09:21 by algultse          #+#    #+#             */
+/*   Updated: 2025/02/06 05:47:05 by algultse         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef LIB_CMDS_HPP
+# define LIB_CMDS_HPP
 
 # include "PassCommand.hpp"
 # include "NickCommand.hpp"
