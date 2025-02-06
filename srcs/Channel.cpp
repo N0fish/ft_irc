@@ -37,8 +37,8 @@ void	Channel::addClient(Client* client) {
 
 void	Channel::removeClient(Client* client) {
 	clients.erase(client);
-	if (clients.empty())
-		return ; // Оставляем канал, но сохраняем его настройки
+	// if (clients.empty())
+	// 	return ; // Оставляем канал, но сохраняем его настройки
 }
 
 bool	Channel::isBanned(Client* client) const {

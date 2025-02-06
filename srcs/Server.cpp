@@ -131,7 +131,13 @@ void Server::acceptConnection()
 
     uint16_t ClientPort = ntohs(clientAddr.sin_port);
     clientObjects.push_back(new Client(clientFd, std::string(clientIP), ntohs(clientAddr.sin_port)));
-    // std::cout << "New client connected: " << clientFd << std::endl;
+	Client* newClient = clientObjects.back();
+	Channel* general = getChannel("&system");
+	if (!general) {
+		general = createChannel("&system", "", NULL);
+	}
+	general->addClient(newClient);
+	newClient->joinChannel("&system");
     std::cout << "New client connected: " << clientFd
               << " (IP: " << clientIP << ", Port: " << ClientPort << ")"
               << std::endl;
@@ -247,6 +253,7 @@ void Server::disconnectClient(Client *client)
 
     int fd = client->getFd();
     removeClientFromChannels(client);
+	removeNickname(client->getNickname());
 
     for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it)
     {
@@ -267,8 +274,9 @@ void Server::disconnectClient(Client *client)
             break;
         }
     }
+	if (fd > 0)
+    	close(fd);
 
-    close(fd);
     std::cout << "Client(" << fd << ") disconnected"
               << std::endl;
 }

@@ -92,4 +92,8 @@
 # define ERR_CANNOTSENDTOCHAN(host, client, channel) (":" + host + " 404 " + client + " " + channel + " :Cannot send to channel")
 # define RPL_PRIVMSG(sender_prefix, target, message) (":" + sender_prefix + " PRIVMSG " + target + " :" + message)
 
+// QUIT
+# define RPL_QUIT(user_prefix, reason) (":" + user_prefix + " QUIT :" + reason)
+# define RPL_ERROR(host, client, message) (":" + host + " ERROR :" + message)
+
 #endif
