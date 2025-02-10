@@ -1,4 +1,4 @@
-# ft_irc_3fill
+# ft_irc
 
 ## made using Internet Relay Chat: Client Protocol:
 
