@@ -1,177 +1,223 @@
-#include "Server.hpp"
-#include "PassCommand.hpp"
-#include "NickCommand.hpp"
-#include "UserCommand.hpp"
-#include "JoinCommand.hpp"
-#include "PartCommand.hpp"
-#include "PrivmsgCommand.hpp"
-#include "PingCommand.hpp"
-#include "Channel.hpp"
-#include "Client.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: econtess <econtess@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/06 17:24:20 by econtess          #+#    #+#             */
+/*   Updated: 2025/02/06 17:24:20 by econtess         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-Server::Server(int port, const std::string &password):	port(port),
-														password(password) {
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Command.hpp"
+#include "libcmds.hpp"
+
+Server::Server(int port, const std::string &password) : port(port),
+                                                        password(password) {
+	creationTime = time(NULL);
 	initSocket();
 	initializeCommands();
 }
 
 Server::~Server() {
+	cleanup();
+}
+
+void	Server::cleanup()	{
+	std::cout << "\n🧹 Server cleanup in progress..." << std::endl;
 	close(serverSocket);
+
 	for (size_t i = 0; i < clients.size(); ++i) {
 		close(clients[i].fd);
 	}
+	clients.clear();
+	std::vector<pollfd>().swap(clients);
+
 	for (size_t i = 0; i < clientObjects.size(); ++i) {
 		delete clientObjects[i];
 	}
-    for (std::map<std::string, Command*>::iterator it = commands.begin(); it != commands.end(); ++it) {
-        delete it->second;
-    }
+	clientObjects.clear();
+	std::vector<Client *>().swap(clientObjects);
+
+	for (std::map<std::string, Command *>::iterator it = commands.begin(); it != commands.end(); ++it) {
+		delete it->second;
+	}
+	commands.clear();
+
+	for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end();) {
+		delete it->second;
+		std::map<std::string, Channel *>::iterator next = it;
+		++next;
+		channels.erase(it);
+		it = next;
+	}
+	usedNicknames.clear();
+	uniqueChannels.clear();
+	std::cout << "\n👌 Server cleanup complete." << std::endl;
 }
 
-void Server::initSocket() {
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket < 0) {
-        throw std::runtime_error("Failed to create socket");
-    }
-
-    int opt = 1;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        throw std::runtime_error("Failed to set socket options");
-    }
-
-    int flags = fcntl(serverSocket, F_GETFL, 0);
-    if (flags < 0 || fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
-        throw std::runtime_error("Failed to set non-blocking mode");
-    }
-
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(port);
-
-    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
-        throw std::runtime_error("Bind failed");
-    }
-
-    if (listen(serverSocket, 10) < 0) {
-        throw std::runtime_error("Listen failed");
-    }
-
-    std::cout << "Server started on port " << port << std::endl;
-}
-
-// сервер создаёт клиента (Client) при подключении
-
-// - сервр принимает новое соединение
-// - добавляет клиента в poll() для обработки событий
-// - создает новый объект Client и сохраняет его
-void Server::acceptConnection() {
-    int clientFd = accept(serverSocket, NULL, NULL);
-    if (clientFd < 0) {
-        if (errno != EWOULDBLOCK) {
-            std::cerr << "Accept error" << std::endl;
-        }
-        return;
-    }
-
-    // Add client to poll list
-    struct pollfd clientPoll;
-    clientPoll.fd = clientFd;
-    clientPoll.events = POLLIN;
-    clients.push_back(clientPoll);
-
-    clientObjects.push_back(new Client(clientFd));
-    std::cout << "New client connected: " << clientFd << std::endl;
-}
-
-// сервер получает команды от клиента
-void Server::handleClient(int clientFd) {
-    char buffer[1024];
-    memset(buffer, 0, sizeof(buffer));
-    ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-	// recv() получает данные от клиента.
-	// Сообщение разбивается по \n, чтобы обработать каждую команду.
-	// handleCommand(client, command); передаёт команду в обработчик.
-
-    if (bytesRead <= 0) {
-        if (bytesRead < 0 && errno != EWOULDBLOCK) {
-            std::cerr << "Recv error for client " << clientFd << std::endl;
-        }
-		
-		// Найдём клиента и отключим его
-		Client* client = findClientByFd(clientFd);
-		if (client) {
-			disconnectClient(client); // Закрываем соединение
-		}
-		return ; // Завершаем обработку клиента
+void	Server::initSocket() {
+	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (serverSocket < 0) {
+		throw std::runtime_error("Failed to create socket");
 	}
 
-    std::string message(buffer);
-    std::cout << "Received from client " << clientFd << ": " << message << std::endl;
+	int	opt = 1;
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+		throw std::runtime_error("Failed to set socket options");
+	}
 
-    Client* client = findClientByFd(clientFd);
-    if (!client)
-		return ;
+	int	flags = fcntl(serverSocket, F_GETFL, O_NONBLOCK);
+	if (flags < 0 || fcntl(serverSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
+		throw std::runtime_error("Failed to set non-blocking mode");
+	}
 
-    client->setPartialMessage(client->getPartialMessage() + message);
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_addr.s_addr = INADDR_ANY;
+	serverAddr.sin_port = htons(port);
 
-    size_t	pos;
-    while ((pos = client->getPartialMessage().find('\n')) != std::string::npos) {
-        std::string command = client->getPartialMessage().substr(0, pos);
-        client->setPartialMessage(client->getPartialMessage().substr(pos + 1));
+	if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
+		throw std::runtime_error("Bind failed");
+	}
 
-        if (command.empty())
-			continue ;
-
-        handleCommand(client, command); // передаёт команду в обработчик.
-    }
-
-    if (client->getPartialMessage() == "\n") {
-        client->setPartialMessage("");
-    }
+	if (listen(serverSocket, 10) < 0) {
+		throw std::runtime_error("Listen failed");
+	}
+	std::cout << "🏁 Server started on port " << port << std::endl;
 }
 
-// Команды добавляются в std::map<std::string, Command*> 
-// commands в методе initializeCommands().
+void	Server::acceptConnection() {
+	struct sockaddr_in	clientAddr;
+	socklen_t			addrLen = sizeof(clientAddr);
+	memset(&clientAddr, 0, sizeof(clientAddr));
 
-	// initializeCommands добавлен в конструктор в начале
-	// Когда сервер создаётся, он наполняет commands.
-	// Когда клиент вводит NICK, PASS, USER, сервер вызывает соответствующий объект.
+	int	clientFd = accept(serverSocket, (struct sockaddr *)&clientAddr, &addrLen);
+	if (clientFd < 0) {
+		if (errno != EWOULDBLOCK) {
+			std::cerr << "Accept error" << std::endl;
+		}
+		return ;
+	}
+
+	char	clientIP[INET_ADDRSTRLEN];
+	if (!inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, INET_ADDRSTRLEN)) {
+		std::cerr << "Failed to get client IP" << std::endl;
+		return ;
+	}
+
+	struct pollfd	clientPoll;
+	memset(&clientPoll, 0, sizeof(clientPoll));
+	clientPoll.fd = clientFd;
+	clientPoll.events = POLLIN;
+	clients.push_back(clientPoll);
+
+	uint16_t	ClientPort = ntohs(clientAddr.sin_port);
+	clientObjects.push_back(new Client(clientFd, std::string(clientIP), ntohs(clientAddr.sin_port)));
+	Client*		newClient = clientObjects.back();
+	Channel*	general = getChannel("&system");
+	if (!general) {
+		general = createChannel("&system", "", NULL);
+	}
+	general->addClient(newClient);
+	newClient->joinChannel("&system");
+	std::cout	<< "New client connected: " << clientFd
+				<< " (IP: " << clientIP << ", Port: " << ClientPort << ")"
+				<< std::endl;
+}
+
+void	Server::handleClient(int clientFd) {
+	char	buffer[1024];
+	memset(buffer, 0, sizeof(buffer));
+	ssize_t	bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+
+	if (bytesRead <= 0) {
+		if (bytesRead < 0 && errno != EWOULDBLOCK) {
+			std::cerr << "Recv error for client " << clientFd << std::endl;
+		}
+		Client	*client = findClientByFd(clientFd);
+		if (client)
+			disconnectClient(client);
+		return ;
+	}
+
+	Client	*client = findClientByFd(clientFd);
+	if (!client) {
+		return ;
+	}
+
+	std::string	message(buffer);
+	client->setPartialMessage(client->getPartialMessage() + message);
+
+	size_t	pos;
+	while ((pos = client->getPartialMessage().find('\n')) != std::string::npos) {
+		std::string	command = client->getPartialMessage().substr(0, pos);
+		client->setPartialMessage(client->getPartialMessage().substr(pos + 1));
+
+		if (command.empty())
+			continue ;
+
+		handleCommand(client, command);
+		if (findClientByFd(clientFd) == NULL)
+			return ;
+	}
+}
 
 void	Server::initializeCommands() {
-	// commands — мап, ключ - "PASS" (объект команды)
-	// клиент отправляет PASS, NICK или USER, 
-	// сервер находит соответствующий обработчик команды в этом мап
-	commands["PASS"] = new PassCommand(this);
-	commands["NICK"] = new NickCommand(this);
-	commands["USER"] = new UserCommand(this);
+    commands["PASS"] = new PassCommand(this);
+    commands["NICK"] = new NickCommand(this);
+    commands["USER"] = new UserCommand(this);
 
     commands["JOIN"] = new JoinCommand(this);
     commands["PART"] = new PartCommand(this);
     commands["PRIVMSG"] = new PrivmsgCommand(this);
     commands["PING"] = new PingCommand(this);
+    commands["PONG"] = new PongCommand(this);
+
+    commands["KICK"] = new KickCommand(this);
+    commands["INVITE"] = new InviteCommand(this);
+    commands["TOPIC"] = new TopicCommand(this);
+    commands["MODE"] = new ModeCommand(this);
+
+    commands["USERHOST"] = new UserhostCommand(this);
+    commands["LIST"] = new ListCommand(this);
+    commands["QUIT"] = new QuitCommand(this);
+    commands["WHOIS"] = new WhoisCommand(this);
+    commands["INFO"] = new InfoCommand(this);
+    commands["NAMES"] = new NamesCommand(this);
 }
 
-void	Server::removeClientFromChannels(Client* client) {
-	for (std::map<std::string, Channel*>::iterator it = channels.begin(); it != channels.end(); ) {
-		it->second->removeClient(client);
-		if (it->second->isEmpty()) {
-			delete it->second;
-			std::map<std::string, Channel*>::iterator next = it;
-            ++next;                 // Переходим к следующему итератору
-            delete it->second;      // Удаляем объект канала
-            channels.erase(it);     // Удаляем элемент из map
-            it = next;   
-		}
-		else
-			++it;
-	}
+void	Server::removeClientFromChannels(Client *client) {
+    if (client == NULL)
+        return ;
+
+    std::vector<std::string>	emptyChannels;
+    for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); ++it) {
+        it->second->removeClient(client);
+        if (it->second->isEmpty()) {
+            emptyChannels.push_back(it->first);
+        }
+    }
+
+    for (size_t i = 0; i < emptyChannels.size(); ++i) {
+        std::map<std::string, Channel *>::iterator it = channels.find(emptyChannels[i]);
+        if (it != channels.end()) {
+            delete it->second;
+            channels.erase(it);
+        }
+    }
 }
 
-void	Server::disconnectClient(Client* client) {
-	removeClientFromChannels(client);
+void	Server::disconnectClient(Client *client)
+{
+	if (!client)
+		return ;
 
 	int	fd = client->getFd();
-
+	removeClientFromChannels(client);
+	removeNickname(client->getNickname());
 	for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); ++it) {
 		if (it->fd == fd) {
 			clients.erase(it);
@@ -179,41 +225,33 @@ void	Server::disconnectClient(Client* client) {
 		}
 	}
 
-	for (std::vector<Client*>::iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
+	for (std::vector<Client *>::iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
 		if (*it == client) {
 			delete client;
+			*it = NULL;
 			clientObjects.erase(it);
 			break ;
 		}
 	}
-
-	close(fd);
-	std::cout	<< "Client "
-				<< fd << " disconnected."
+	if (fd > 0)
+		close(fd);
+	std::cout	<< "Client(" << fd << ") disconnected"
 				<< std::endl;
 }
 
-bool	Server::isNicknameTaken(const std::string& nickname) const {
-	for (size_t i = 0; i < clientObjects.size(); ++i) {
-		if (clientObjects[i]->getNickname() == nickname) {
-			return (true);
-		}
-	}
-	return (false);
-}
-
-// сервер обрабатывает команды, которые вводит клиент
-void	Server::handleCommand(Client* client, const std::string& command) {
-	// Парсим команду: бюерём NICK
-	// Ищем в commands:
-	// Если NICK есть в commands, вызываем commands["NICK"]->execute(client, args);
-	// Если нет, сервер отвечает :server 421 <command> :Unknown command.
+void	Server::handleCommand(Client *client, const std::string &command) {
 	if (command.empty())
 		return ;
 
 	std::istringstream	iss(command);
 	std::string			cmd;
 	iss >> cmd;
+
+	std::cout << "Client(" << client->getFd() << ") >> " << command << std::endl;
+	if (!client->isRegistered() && cmd != "PASS" && cmd != "NICK" && cmd != "USER") {
+		client->reply(ERR_NOTREGISTERED(this->getHostname(), client->getNickname()));
+		return ;
+	}
 
 	if (commands.find(cmd) != commands.end()) {
 		std::vector<std::string>	args;
@@ -222,184 +260,181 @@ void	Server::handleCommand(Client* client, const std::string& command) {
 			args.push_back(arg);
 		}
 		commands[cmd]->execute(client, args);
-	} else {
-		std::string errorMsg = ":server 421 " + cmd + " :Unknown command\r\n";
-		send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
 	}
+	else
+		client->reply(ERR_UNKNOWNCOMMAND(this->getHostname(), cmd));
 }
 
 void Server::run() {
-    struct pollfd serverPoll;
-    serverPoll.fd = serverSocket;
-    serverPoll.events = POLLIN;
+	struct pollfd	serverPoll;
+	memset(&serverPoll, 0, sizeof(serverPoll));
+	serverPoll.fd = serverSocket;
+	serverPoll.events = POLLIN;
 
-    clients.push_back(serverPoll);
+	clients.push_back(serverPoll);
+	while (true) {
+		int pollCount = poll(clients.data(), clients.size(), -1);
+		if (pollCount < 0) {
+			if (errno == EINTR)
+				continue ;
+			throw std::runtime_error("Poll failed");
+		}
 
-    while (true) {
-        int pollCount = poll(clients.data(), clients.size(), -1);
-        if (pollCount < 0) {
-            if (errno == EINTR)
-                continue ; // Сигнал, повторяем poll
-            throw std::runtime_error("Poll failed");
-        }
-
-        for (size_t i = 0; i < clients.size(); ++i) {
-            if (clients[i].revents & POLLIN) {
-                if (clients[i].fd == serverSocket) {
-                    acceptConnection();
-                } else {
-                    handleClient(clients[i].fd);
-                }
-            }
-        }
-
-        // Завершаем сервер, если остался только серверный сокет
-        if (clients.size() == 1) { // Только серверный сокет
-            std::cout	<< "No clients left. Shutting down server."
-                        << std::endl;
-            break ;
-        }
-    }
+		for (size_t i = 0; i < clients.size(); ++i) {
+			if (clients[i].revents & POLLIN) {
+				if (clients[i].fd == serverSocket) {
+					acceptConnection();
+				} else {
+					handleClient(clients[i].fd);
+				}
+			}
+		}
+	}
 }
 
-std::string	Server::getPassword() const { 
-	return (password); 
+void	Server::removeNickname(const std::string &nickname) {
+	if (!nickname.empty()) {
+		usedNicknames.erase(nickname);
+	}
 }
 
-Client* Server::findClientByFd(int fd) {
-    for (size_t i = 0; i < clientObjects.size(); ++i) {
-        if (clientObjects[i]->getFd() == fd) {
-            return clientObjects[i];
-        }
-    }
-    return NULL; // Клиент не найден
+void	Server::addNickname(const std::string &nickname) {
+	if (!nickname.empty()) {
+		usedNicknames.insert(nickname);
+	}
 }
 
-void Server::handleJOIN(Client* client, const std::vector<std::string>& args) {
-    if (args.empty()) {
-        send(client->getFd(), ":server 461 JOIN :Not enough parameters\r\n", 43, 0);
-        return;
-    }
-
-    const std::string& channelName = args[0];
-
-    if (channels.find(channelName) == channels.end()) {
-        channels[channelName] = new Channel(channelName); // Создаем канал без пароля
-    }
-
-    Channel* channel = channels[channelName];
-    channel->addClient(client);
-    client->joinChannel(channelName);
-
-    std::string successMsg = ":" + client->getNickname() + " JOIN :" + channelName + "\r\n";
-    send(client->getFd(), successMsg.c_str(), successMsg.size(), 0);
+bool	Server::isNicknameTaken(const std::string &nickname) const {
+	return (usedNicknames.find(nickname) != usedNicknames.end());
 }
 
-void Server::handlePART(int clientFd, const std::string& channelName) {
-    // Найти клиента по файловому дескриптору
-    Client* client = findClientByFd(clientFd);
-    if (!client) {
-        std::cerr << "Client not found for fd: " << clientFd << std::endl;
-        return;
-    }
-
-    // Проверить существование канала
-    if (channels.find(channelName) == channels.end()) {
-        std::string errorMsg = ":server 403 " + channelName + " :No such channel\r\n";
-        send(clientFd, errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
-
-    // Проверить, состоит ли клиент в канале
-    if (!client->isInChannel(channelName)) {
-        std::string errorMsg = ":server 442 " + channelName + " :You're not on that channel\r\n";
-        send(clientFd, errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
-
-    // Удалить клиента из канала
-    Channel* channel = channels[channelName];
-    channel->removeClient(client);
-    client->leaveChannel(channelName);
-
-    // Уведомление об успешном выходе
-    std::string successMsg = ":" + client->getNickname() + " PART :" + channelName + "\r\n";
-    send(clientFd, successMsg.c_str(), successMsg.size(), 0);
-
-    // Если канал пуст, удалить его
-    if (channel->isEmpty()) {
-        delete channel;
-        channels.erase(channelName);
-    }
+const std::map<std::string, Channel *>	&Server::getChannels() const {
+	return (channels);
 }
 
-void Server::handlePRIVMSG(Client* client, const std::vector<std::string>& args) {
-    if (args.size() < 2) {
-        std::string errorMsg = ":server 461 PRIVMSG :Not enough parameters\r\n";
-        send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
+const std::vector<std::string>	Server::getChannelsName() {
+	std::vector<std::string>	resp;
 
-    const std::string& target = args[0];
-    const std::string& message = args[1];
-
-    if (target[0] == '#') { // Сообщение в канал
-        // Проверяем, существует ли канал
-        if (channels.find(target) == channels.end()) {
-            std::string errorMsg = ":server 403 " + target + " :No such channel\r\n";
-            send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-            return;
-        }
-
-        // Получаем канал и отправляем сообщение всем клиентам
-        Channel* channel = channels[target];
-        std::set<Client*>::const_iterator it = channel->getClients().begin();
-        for (; it != channel->getClients().end(); ++it) {
-            Client* recipient = *it;
-            if (recipient != client) {
-                std::string msg = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-                send(recipient->getFd(), msg.c_str(), msg.size(), 0);
-            }
-        }
-
-    } else { // Личное сообщение
-        // Ищем клиента по никнейму
-        Client* recipient = findClientByNickname(target);
-        if (!recipient) {
-            std::string errorMsg = ":server 401 " + target + " :No such nick\r\n";
-            send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-            return;
-        }
-
-        // Отправляем личное сообщение
-        std::string msg = ":" + client->getNickname() + " PRIVMSG " + target + " :" + message + "\r\n";
-        send(recipient->getFd(), msg.c_str(), msg.size(), 0);
-    }
+	for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); it++) {
+		resp.push_back(it->second->getName());
+	}
+	return (resp);
 }
 
-Client* Server::findClientByNickname(const std::string& nickname) const {
-    for (std::vector<Client*>::const_iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
-        Client* client = *it;
-        if (client->getNickname() == nickname) {
-         return client;
-        }
-        if (client->getNickname() == nickname) {
-            return client;
-        }
-    }
-    return NULL; // Клиент с таким никнеймом не найден
+bool	Server::isChannelNameTaken(const std::string &name) {
+	return (uniqueChannels.find(name) != uniqueChannels.end());
 }
 
-void Server::handlePING(Client* client, const std::vector<std::string>& args) {
-    if (args.empty()) {
-        // Если аргументы отсутствуют, отправляем ошибку
-        std::string errorMsg = ":server 409 PING :No origin specified\r\n";
-        send(client->getFd(), errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
-
-    // Формируем PONG-ответ
-    std::string pongMsg = ":server PONG :" + args[0] + "\r\n";
-    send(client->getFd(), pongMsg.c_str(), pongMsg.size(), 0);
+std::string	Server::getPassword() const {
+	return (password);
 }
 
+std::string	Server::getHostname() const {
+	char	hostname[256];
+	memset(hostname, 0, sizeof(hostname));
+
+	if (gethostname(hostname, sizeof(hostname) - 1) != 0) {
+		std::cerr << "Error: gethostname() failed, using 'localhost'" << std::endl;
+		return ("localhost");
+	}
+	return (std::string(hostname));
+}
+
+Client	*Server::findClientByFd(int fd) {
+	for (size_t i = 0; i < clientObjects.size(); ++i) {
+		if (clientObjects[i]->getFd() == fd) {
+			return (clientObjects[i]);
+		}
+	}
+	return (NULL);
+}
+
+Channel	*Server::getChannel(const std::string &name) {
+	if (channels.find(name) != channels.end()) {
+		return (channels[name]);
+	}
+	return (NULL);
+}
+
+Channel	*Server::createChannel(const std::string &name, const std::string &pass, Client *creator) {
+	if (channels.find(name) != channels.end())
+		return (channels[name]);
+	if (name[0] == '+')
+		return (NULL);
+	if (name[0] == '!' && uniqueChannels.find(name) != uniqueChannels.end())
+		return (NULL);
+
+	Channel	*newChannel = new Channel(name, pass);
+	if (!newChannel)
+		return (NULL);
+	channels[name] = newChannel;
+	if (name[0] == '!')
+	{
+		uniqueChannels.insert(name);
+	}
+	if (creator != NULL)
+	{
+		newChannel->addClient(creator);
+		newChannel->addOperator(creator);
+	}
+	return (newChannel);
+}
+
+void	Server::deleteChannel(const std::string &channelName)	{
+	if (channels.find(channelName) == channels.end())	{
+		std::cerr << "Warning: Attempt to delete a non-existing channel: " << channelName << std::endl;
+		return ;
+	}
+
+	std::map<std::string, Channel *>::iterator it = channels.find(channelName);
+	if (it != channels.end()) {
+		delete it->second;
+		channels.erase(it);
+	}
+}
+
+Client	*Server::findClientByNickname(const std::string &nickname) const {
+	for (std::vector<Client *>::const_iterator it = clientObjects.begin(); it != clientObjects.end(); ++it) {
+		Client *client = *it;
+		if (client->getNickname() == nickname) {
+			return (client);
+		}
+		if (client->getNickname() == nickname) {
+			return (client);
+		}
+	}
+	return (NULL);
+}
+
+time_t	Server::getCreationTime() const {
+	return (creationTime);
+}
+
+std::string	Server::getVersion() const {
+	return ("IRC Server v1.0");
+}
+
+std::string	Server::getOSInfo() const {
+	return ("Running on Linux");
+}
+
+std::string	Server::getUptime() const {
+	time_t	currentTime = time(NULL);
+	time_t	uptime = currentTime - creationTime;
+	int		days = uptime / (60 * 60 * 24);
+	int		hours = (uptime % (60 * 60 * 24)) / (60 * 60);
+	int		minutes = (uptime % (60 * 60)) / 60;
+
+	char	uptimeStr[50];
+	snprintf(uptimeStr, sizeof(uptimeStr), "%d days, %d hours, %d minutes", days, hours, minutes);
+	return (std::string(uptimeStr));
+}
+
+void	Server::broadcast(const std::string &message, Client *sender) {
+	for (size_t i = 0; i < clientObjects.size(); i++) {
+		Client	*target = clientObjects[i];
+		if (target != sender) {
+			target->reply(message);
+		}
+	}
+}
