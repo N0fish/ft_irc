@@ -47,7 +47,7 @@ void	InfoCommand::execute(Client* client, const std::vector<std::string>& args) 
 								+ std::string(COMPILE_DATE) + " at " + std::string(COMPILE_TIME)));
 	client->reply(RPL_INFO(host, nick, "Patch level: 1.0.1"));
 	client->reply(RPL_INFO(host, nick, "Running on Linux x86_64"));
-	client->reply(RPL_INFO(host, nick, "Developed by three girls from ecole42 ^_^"));
+	client->reply(RPL_INFO(host, nick, "Developed by two girls from ecole42 ^_^"));
 
 	if (timeInfo) {
 		std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", timeInfo);
