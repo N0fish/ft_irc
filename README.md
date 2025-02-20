@@ -6,7 +6,13 @@
 https://www.rfc-editor.org/rfc/rfc2812#section-3.6.2
 ```
 
-## make && :
+## program launch :
+
+```
+make && ./ircserv 6667 1234
+```
+
+## error checking
 
 ```
 valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./ircserv 6667 1234

@@ -137,12 +137,12 @@ std::string	Client::getIpAddr() const {
 }
 
 void	Client::registerAction(Server *server) {
-    (void)server;
+	(void)server;
 	if (isRegistered())
 		return ;
-    setState(REGISTERED);
-    reply(PRL_WELCOM(server->getHostname(), this->getNickname()));
-    reply("PING :server");
+	setState(REGISTERED);
+	reply(PRL_WELCOM(server->getHostname(), this->getNickname()));
+	reply("PING :server");
 }
 
 time_t	Client::getIdleTime() const {

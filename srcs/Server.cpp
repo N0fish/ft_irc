@@ -16,7 +16,7 @@
 #include "libcmds.hpp"
 
 Server::Server(int port, const std::string &password) : port(port),
-                                                        password(password) {
+														password(password) {
 	creationTime = time(NULL);
 	initSocket();
 	initializeCommands();
@@ -166,48 +166,48 @@ void	Server::handleClient(int clientFd) {
 }
 
 void	Server::initializeCommands() {
-    commands["PASS"] = new PassCommand(this);
-    commands["NICK"] = new NickCommand(this);
-    commands["USER"] = new UserCommand(this);
+	commands["PASS"] = new PassCommand(this);
+	commands["NICK"] = new NickCommand(this);
+	commands["USER"] = new UserCommand(this);
 
-    commands["JOIN"] = new JoinCommand(this);
-    commands["PART"] = new PartCommand(this);
-    commands["PRIVMSG"] = new PrivmsgCommand(this);
-    commands["PING"] = new PingCommand(this);
-    commands["PONG"] = new PongCommand(this);
+	commands["JOIN"] = new JoinCommand(this);
+	commands["PART"] = new PartCommand(this);
+	commands["PRIVMSG"] = new PrivmsgCommand(this);
+	commands["PING"] = new PingCommand(this);
+	commands["PONG"] = new PongCommand(this);
 
-    commands["KICK"] = new KickCommand(this);
-    commands["INVITE"] = new InviteCommand(this);
-    commands["TOPIC"] = new TopicCommand(this);
-    commands["MODE"] = new ModeCommand(this);
+	commands["KICK"] = new KickCommand(this);
+	commands["INVITE"] = new InviteCommand(this);
+	commands["TOPIC"] = new TopicCommand(this);
+	commands["MODE"] = new ModeCommand(this);
 
-    commands["USERHOST"] = new UserhostCommand(this);
-    commands["LIST"] = new ListCommand(this);
-    commands["QUIT"] = new QuitCommand(this);
-    commands["WHOIS"] = new WhoisCommand(this);
-    commands["INFO"] = new InfoCommand(this);
-    commands["NAMES"] = new NamesCommand(this);
+	commands["USERHOST"] = new UserhostCommand(this);
+	commands["LIST"] = new ListCommand(this);
+	commands["QUIT"] = new QuitCommand(this);
+	commands["WHOIS"] = new WhoisCommand(this);
+	commands["INFO"] = new InfoCommand(this);
+	commands["NAMES"] = new NamesCommand(this);
 }
 
 void	Server::removeClientFromChannels(Client *client) {
-    if (client == NULL)
-        return ;
+	if (client == NULL)
+		return ;
 
-    std::vector<std::string>	emptyChannels;
-    for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); ++it) {
-        it->second->removeClient(client);
-        if (it->second->isEmpty()) {
-            emptyChannels.push_back(it->first);
-        }
-    }
+	std::vector<std::string>	emptyChannels;
+	for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); ++it) {
+		it->second->removeClient(client);
+		if (it->second->isEmpty()) {
+			emptyChannels.push_back(it->first);
+		}
+	}
 
-    for (size_t i = 0; i < emptyChannels.size(); ++i) {
-        std::map<std::string, Channel *>::iterator it = channels.find(emptyChannels[i]);
-        if (it != channels.end()) {
-            delete it->second;
-            channels.erase(it);
-        }
-    }
+	for (size_t i = 0; i < emptyChannels.size(); ++i) {
+		std::map<std::string, Channel *>::iterator it = channels.find(emptyChannels[i]);
+		if (it != channels.end()) {
+			delete it->second;
+			channels.erase(it);
+		}
+	}
 }
 
 void	Server::disconnectClient(Client *client)

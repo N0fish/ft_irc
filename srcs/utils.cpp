@@ -45,12 +45,12 @@ std::string	joinArgs(const std::vector<std::string> &args, size_t startIndex)
 
 bool	isNumber(const std::string &s)
 {
-    if (s.empty()) {
-        return (false);
-    }
-    for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
-        if (!std::isdigit(static_cast<unsigned char>(*it)))
-            return (false);
-    }
-    return (true);
+	if (s.empty()) {
+		return (false);
+	}
+	for (std::string::const_iterator it = s.begin(); it != s.end(); ++it) {
+		if (!std::isdigit(static_cast<unsigned char>(*it)))
+			return (false);
+	}
+	return (true);
 }
